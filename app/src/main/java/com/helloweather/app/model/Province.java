@@ -1,9 +1,9 @@
 package com.helloweather.app.model;
 
 /**
- *@brief  Province类
- *@author HuaZhu
- *created at 2016-11-10 17:44
+ * @author HuaZhu
+ *         created at 2016-11-10 17:44
+ * @brief Province类
  */
 public class Province {
 

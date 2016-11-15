@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">HelloWeather</string>
     <string name="chinese">中国</string>
+    <string name="synchronizing">同步中...</string>
+    <string name="sync_failure">同步失败</string>
+    <string name="today">今天</string>
+    <string name="publish">发布</string>
 </resources>

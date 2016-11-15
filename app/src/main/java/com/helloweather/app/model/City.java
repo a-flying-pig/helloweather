@@ -1,9 +1,9 @@
 package com.helloweather.app.model;
 
 /**
- *@brief  City类
- *@author HuaZhu
- *created at 2016-11-10 17:45
+ * @author HuaZhu
+ *         created at 2016-11-10 17:45
+ * @brief City类
  */
 public class City {
 

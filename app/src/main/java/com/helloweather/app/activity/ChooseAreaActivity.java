@@ -1,7 +1,10 @@
 package com.helloweather.app.activity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
@@ -25,9 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *@brief  用于遍历省市县数据
- *@author HuaZhu
- *created at 2016-11-11 11:31
+ * @author HuaZhu
+ *         created at 2016-11-11 11:31
+ * @brief 用于遍历省市县数据
  */
 public class ChooseAreaActivity extends AppCompatActivity {
 
@@ -36,31 +39,49 @@ public class ChooseAreaActivity extends AppCompatActivity {
     public static final int LEVEL_CITY = 1;
 
     public static final int LEVEL_COUNTRY = 2;
-    
+
     private ProgressDialog progressDialog;
     private TextView titleText;
     private ListView listView;
     private ArrayAdapter<String> adapter;
     private HelloWeatherDB helloWeatherDB;
     private List<String> dataList = new ArrayList<String>();
-    
-    /** 省列表 */
+
+    /**
+     * 省列表
+     */
     private List<Province> provinceList;
-    /** 市刘表 */
+    /**
+     * 市刘表
+     */
     private List<City> cityList;
-    /** 县列表 */
+    /**
+     * 县列表
+     */
     private List<Country> countryList;
 
-    /** 选中的省份 */
+    /**
+     * 选中的省份
+     */
     private Province selectedProvince;
-    /** 选中的城市 */
+    /**
+     * 选中的城市
+     */
     private City selectedCity;
-    /** 当前选中的级别 */
+    /**
+     * 当前选中的级别
+     */
     private int currentLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.getBoolean("city_selected", false)) {
+            Intent intent = new Intent(this, WeatherActivity.class);
+            startActivity(intent);
+            finish();
+        }
         setContentView(R.layout.choose_area);
         listView = (ListView) findViewById(R.id.list_view);
         titleText = (TextView) findViewById(R.id.title_text);
@@ -76,14 +97,23 @@ public class ChooseAreaActivity extends AppCompatActivity {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCountries();
+                } else if (currentLevel == LEVEL_COUNTRY) {
+                    String countryCode = countryList.get(position).getCountryCode();
+                    LogUtil.d("getWeather", "countryCode" + countryList.get(position).getCountryCode());
+                    Intent intent = new Intent(ChooseAreaActivity.this, WeatherActivity.class);
+                    intent.putExtra("country_code", countryCode);
+                    startActivity(intent);
+                    finish();
                 }
             }
         });
         queryProvinces(); // 加载省级数据
     }
-    
-    /** 
-     * @brief   查询所有的省，优先从数据库查，如果没有查询到再去服务器上查询（简述）
+
+    /**
+     *  
+     *
+     * @brief 查询所有的省，优先从数据库查，如果没有查询到再去服务器上查询（简述）
      */
     private void queryProvinces() {
         provinceList = helloWeatherDB.loadProvinces();
@@ -101,8 +131,10 @@ public class ChooseAreaActivity extends AppCompatActivity {
         }
     }
 
-    /** 
-     * @brief   查询选中的所有的市，优先从数据库查，没有查询到再去服务器查询（简述）
+    /**
+     *  
+     *
+     * @brief 查询选中的所有的市，优先从数据库查，没有查询到再去服务器查询（简述）
      */
     private void queryCities() {
         cityList = helloWeatherDB.loadCities(selectedProvince.getId());
@@ -121,8 +153,10 @@ public class ChooseAreaActivity extends AppCompatActivity {
         }
     }
 
-    /** 
-     * @brief   查询选中的所有的县，优先从数据库查，没有查询到再去服务器查询（简述）
+    /**
+     *  
+     *
+     * @brief 查询选中的所有的县，优先从数据库查，没有查询到再去服务器查询（简述）
      */
     private void queryCountries() {
         countryList = helloWeatherDB.loadCountries(selectedCity.getId());
@@ -141,17 +175,19 @@ public class ChooseAreaActivity extends AppCompatActivity {
         }
     }
 
-    /** 
-     * @brief   根据传入的代号和类型从服务器上查询省市县数据（简述）
-     * @param   code（省或市或县代号）
-     * @param   type（省或市或县）
+    /**
+     *  
+     *
+     * @brief 根据传入的代号和类型从服务器上查询省市县数据（简述）
+     *  @param   code（省或市或县代号）
+     *  @param   type（省或市或县）
      */
     private void queryFromServer(final String code, final String type) {
         String address;
         if (!TextUtils.isEmpty(code)) {
             address = "http://10.0.2.2:8080/city" + code + ".xml" /*"http://www.weather.com.cn/data/list3/city" + code + ".xml"*/;
         } else address = "http://10.0.2.2:8080/city.xml"; /*address = "http://www.weather.com.cn/data/list3/city.xml";*/
-        LogUtil.d("ceshi" , "showProgressDialog" + address);
+        LogUtil.d("ceshi", "showProgressDialog" + address);
         showProgressDialog();
 //        final int getId = id;
 
@@ -199,8 +235,10 @@ public class ChooseAreaActivity extends AppCompatActivity {
         });
     }
 
-    /** 
-     * @brief   显示进度对话框（简述）
+    /**
+     *  
+     *
+     * @brief 显示进度对话框（简述）
      */
     private void showProgressDialog() {
         if (progressDialog == null) {
@@ -211,8 +249,10 @@ public class ChooseAreaActivity extends AppCompatActivity {
         progressDialog.show();
     }
 
-    /** 
-     * @brief   关闭进度对话框（简述）
+    /**
+     *  
+     *
+     * @brief 关闭进度对话框（简述）
      */
     private void closeProgressDialog() {
         if (progressDialog != null) {
@@ -220,8 +260,10 @@ public class ChooseAreaActivity extends AppCompatActivity {
         }
     }
 
-    /** 
-     * @brief   捕获Back按键，根据当前的级别来判断，此时应返回市、省列表还是直接退出（简述）
+    /**
+     *  
+     *
+     * @brief 捕获Back按键，根据当前的级别来判断，此时应返回市、省列表还是直接退出（简述）
      */
     @Override
     public void onBackPressed() {

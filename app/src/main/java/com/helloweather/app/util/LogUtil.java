@@ -3,7 +3,10 @@ package com.helloweather.app.util;
 import android.util.Log;
 
 /**
- * Created by Administrator on 2016-11-11.
+ * @author HuaZhu
+ *         created at 2016-11-14 18:20
+ * @brief 日志打印工具
+ * 本类是一个单例类
  */
 public class LogUtil {
 

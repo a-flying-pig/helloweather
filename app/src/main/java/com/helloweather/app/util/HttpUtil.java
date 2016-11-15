@@ -12,7 +12,7 @@ import java.net.URL;
  * @brief 服务器交互类，从服务器请求数据
  */
 public class HttpUtil {
-    public static void sendHttpRequest(final String address,final HttpCallbackListener listener) {
+    public static void sendHttpRequest(final String address, final HttpCallbackListener listener) {
         new Thread(new Runnable() {
             @Override
             public void run() {
