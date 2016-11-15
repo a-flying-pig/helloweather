@@ -1,6 +1,9 @@
 package com.helloweather.app.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -12,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.helloweather.app.R;
+import com.helloweather.app.service.AutoUpdateService;
 import com.helloweather.app.util.HttpCallbackListener;
 import com.helloweather.app.util.HttpUtil;
 import com.helloweather.app.util.LogUtil;
@@ -83,23 +87,31 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         } else {
             // 没有县级代号时就直接显示本地天气
             showWeather();
+            Intent serviceIntent = new Intent(this, AutoUpdateService.class);
+            startService(serviceIntent);
         }
         switchCity = (Button) findViewById(R.id.switch_city);
         refreshWeather = (Button) findViewById(R.id.refresh_weather);
         switchCity.setOnClickListener(this);
         refreshWeather.setOnClickListener(this);
+        // 注册动态广播（更新UI（天气信息））
+        IntentFilter intentFiler = new IntentFilter();
+        intentFiler.addAction("com.app.helloweather.MY_UI_BROADCAST");
+        MyUiReceiver myUiReceiver = new MyUiReceiver();
+        registerReceiver(myUiReceiver, intentFiler);
+
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.switch_city:
+            case R.id.switch_city: // 切换城市
                 Intent intent = new Intent(this,ChooseAreaActivity.class);
                 intent.putExtra("from_weather_activity", true);
                 startActivity(intent);
                 finish();
                 break;
-            case R.id.refresh_weather:
+            case R.id.refresh_weather: // 更新天气
                 publishTimeText.setText(R.string.synchronizing);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 String weatherCode = prefs.getString("weather_code", "");
@@ -164,6 +176,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                         @Override
                         public void run() {
                             showWeather();
+                            Intent serviceIntent = new Intent(WeatherActivity.this, AutoUpdateService.class);
+                            startService(serviceIntent);
                         }
                     });
                     LogUtil.d("weatherTest", "queryFromServer showWeather " );
@@ -188,8 +202,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      * @brief   从SharedPreferences文件中读取存储的天气信息，并显示到界面上（简述）。
      */
 
-    private void showWeather() {
-        SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(this);
+    public void showWeather() {
+        SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
         cityNameText.setText(prfs.getString("city_name", ""));
         temp1Text.setText(prfs.getString("temp1", ""));
         temp2Text.setText(prfs.getString("temp2", ""));
@@ -201,6 +215,18 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         currentDataText.setText(prfs.getString("current_date", ""));
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
+    }
 
+    /**
+     *  
+     *
+     * @brief   接收数据更新的广播，收到从服务发送的广播，然后更新UI（天气信息）（简述）
+     */
+    public class MyUiReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            LogUtil.d("weatherRefresh", "MyUiBroadcast start");
+            showWeather();
+        }
     }
 }
