@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  * @author HuaZhu
- *         created at 2016-11-17 15:20
+ *         created at 2016-11-17 17:34
  * @brief JAVAbean类，用于处理返回的城市信息JSON数据
  */
 public class CityInfo {

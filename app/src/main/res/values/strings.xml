@@ -8,7 +8,7 @@
     <string name="today">今天</string>
     <string name="publish_time">发布时间：</string>
     <string name="search_city">搜索城市</string>
-    <string name="input_city">请输入城市名拼音</string>
+    <string name="input_city">请输入城市名或拼音</string>
     <string name="choose_city">选择城市</string>
     <string name="no_search_city">没有查询到该城市，请重新搜索城市</string>
     <string name="no_history_city">无历史查询城市，请搜索城市</string>

@@ -24,6 +24,7 @@ import com.helloweather.app.util.LogUtil;
 import com.helloweather.app.util.MyApplication;
 import com.helloweather.app.util.Utility;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,6 +101,11 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
                 if (TextUtils.isEmpty(queryCity)) {
                     Toast.makeText(this, R.string.no_input_city,Toast.LENGTH_SHORT).show();
                 } else {
+                    try { // 将输入的数据转换成"UTF-8"类型，为了是输入的是城市时也能搜索
+                        queryCity = URLEncoder.encode(queryCity,"UTF-8");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     queryFromServer(queryCity);
                 }
                 break;
