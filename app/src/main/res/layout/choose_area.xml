@@ -1,27 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="10dp"
+            android:text="@string/choose_city"
+            android:textSize="30sp"
+            android:textColor="#27A5F9"/>
+    </LinearLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="#484E61">
+        android:layout_marginTop="50dp"
+        android:background="#484E61"
+        >
 
-        <TextView
-            android:id="@+id/title_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+        <EditText
+            android:id="@+id/query_edit"
+            android:hint="@string/input_city"
+            android:layout_width="250dp"
+            android:layout_height="38dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:textSize="24sp"
+            android:background="#ffffff"/>
+
+        <Button
+            android:id="@+id/query_button"
+            android:text="@string/search_city"
+            android:layout_width="110dp"
+            android:layout_height="38dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="265dp"
             android:textColor="#fff"
-            android:textSize="24sp"/>
+            android:textSize="24sp"
+            android:background="#27A5F9"/>
+
     </RelativeLayout>
 
     <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp">
     </ListView>
 
-</LinearLayout>
+    <Button
+        android:id="@+id/delete_history_record"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_centerHorizontal="true"
+        android:layout_width="100dp"
+        android:layout_height="20dp"
+        android:background="#696969"
+        android:text="@string/delete_history_record" />
+
+</RelativeLayout>

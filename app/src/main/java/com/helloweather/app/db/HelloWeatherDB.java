@@ -4,10 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
 import com.helloweather.app.model.City;
-import com.helloweather.app.model.Country;
-import com.helloweather.app.model.Province;
 import com.helloweather.app.util.LogUtil;
 
 import java.util.ArrayList;
@@ -56,72 +55,34 @@ public class HelloWeatherDB {
     /**
      *  
      *
-     * @brief 将Province实例存储到数据库（简述）
-     *  @param province （Province实例）
-     */
-    public void saveProvince(Province province) {
-        ContentValues values = new ContentValues();
-        values.put("province_name", province.getProvinceName());
-        values.put("province_code", province.getProvinceCode());
-        db.insert("Province", null, values);
-    }
-
-    /**
-     *  
-     *
-     * @brief 从数据库读取所有省份的信息（简述）
-     *  @param   （param描述参数）
-     */
-    public List<Province> loadProvinces() {
-        List<Province> list = new ArrayList<Province>();
-        Cursor cursor = db.query("Province", null, null, null, null, null, null);
-        if (cursor.moveToFirst()) {
-            do {
-                Province province = new Province();
-                province.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                province.setProvinceName(cursor.getString(cursor.getColumnIndex("province_name")));
-                province.setProvinceCode(cursor.getString(cursor.getColumnIndex("province_code")));
-                list.add(province);
-            } while (cursor.moveToNext());
-        }
-        if (cursor != null) {
-            cursor.close();
-        }
-        return list;
-    }
-
-    /**
-     *  
-     *
      * @brief 将City实例存储到数据库（简述）
      *  @param    city（City实例）
      */
     public void saveCity(City city) {
 
         ContentValues values = new ContentValues();
+        values.put("city_id", city.getCityId());
         values.put("city_name", city.getCityName());
-        values.put("city_code", city.getCityCode());
-        values.put("province_id", city.getProvinceId());
+        values.put("city_path", city.getCityPath());
         LogUtil.d("ceshi", "saveCity" + city.getCityName());
         db.insert("City", null, values);
-        // db.execSQL("insert City (city_name,city_code) values(?, ?)", new String[]{city.getCityName(),city.getCityCode()});
+//        db.execSQL("insert City (city_id,city_name,city_path) values(?,?,?)", new String[]{city.getCityId(), city.getCityName(), city.getCityPath()});
     }
 
     /**
      *  
      *
-     * @brief 从数据库读取某省所有的城市信息（简述）
-     *  @param    provinceId（省的id）
+     * @brief 从数据库读取所有的城市信息（简述）
      */
-    public List<City> loadCities(int provinceId) {
+    public List<City> loadCities() {
         List<City> list = new ArrayList<City>();
-        Cursor cursor = db.query("City", null, "province_id = ?", new String[]{String.valueOf(provinceId)}, null, null, null);
+        Cursor cursor = db.query("City", null, null, null , null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 City city = new City();
-                city.setId(cursor.getInt(cursor.getColumnIndex("id")));
+                city.setCityId(cursor.getString(cursor.getColumnIndex("city_id")));
                 city.setCityName(cursor.getString(cursor.getColumnIndex("city_name")));
-                city.setCityCode(cursor.getString(cursor.getColumnIndex("city_code")));
+                city.setCityPath(cursor.getString(cursor.getColumnIndex("city_path")));
                 list.add(city);
             } while (cursor.moveToNext());
         }
@@ -134,39 +95,71 @@ public class HelloWeatherDB {
     /**
      *  
      *
-     * @brief 将Country实例存储到数据库（简述）
-     *  @param    country（Country实例）
+     * @brief   从数据库删除所有的城市信息（简述）
      */
-    public void saveCountry(Country country) {
-        ContentValues values = new ContentValues();
-        values.put("country_name", country.getCountryName());
-        values.put("country_code", country.getCountryCode());
-        values.put("city_id", country.getCityId());
-        db.insert("Country", null, values);
-//        db.execSQL("insert Country(country_name,country_code) values(?,?)",new String[]{country.getCountryName(),country.getCountryCode()});
+    public void deleteCities() {
+        db.delete("City", null, null);
     }
 
     /**
      *  
      *
-     * @brief 从数据库中取出某城市下所有县的信息（简述）
-     *  @param    cityId（城市的id）
+     * @brief 将HistoryCity实例存储到数据库（简述）
+     *  @param    historyCity（City实例）
      */
-    public List<Country> loadCountries(int cityId) {
-        List<Country> list = new ArrayList<Country>();
-        Cursor cursor = db.query("Country", null, "city_id = ?", new String[]{String.valueOf(cityId)}, null, null, null);
+    public void saveHistoryCity(City city) {
+        // 查询是否存在，不存在则加入数据库
+        String cityId = null;
+//        Cursor cursor = db.query("HistoryCity", null, "city_id = ?",new String[] {city.getCityId()}, null, null, null);
+        Cursor cursor = db.rawQuery("select * from HistoryCity where city_id = ?", new String[] {city.getCityId()});
         if (cursor.moveToFirst()) {
             do {
-                Country country = new Country();
-                country.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                country.setCountryName(cursor.getString(cursor.getColumnIndex("country_name")));
-                country.setCountryCode(cursor.getString(cursor.getColumnIndex("country_code")));
-                list.add(country);
+                cityId = cursor.getString(cursor.getColumnIndex("city_id"));
+            } while (cursor.moveToNext());
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+        if (TextUtils.isEmpty(cityId)) {
+            ContentValues values = new ContentValues();
+            values.put("city_id", city.getCityId());
+            values.put("city_name", city.getCityName());
+            values.put("city_path", city.getCityPath());
+            LogUtil.d("ceshi", "saveCity" + city.getCityName());
+            db.insert("HistoryCity", null, values);
+//          db.execSQL("insert City (city_id,city_name,city_path) values(?,?,?)", new String[]{city.getCityId(), city.getCityName(), city.getCityPath()});
+        }
+    }
+
+    /**
+     *  
+     *
+     * @brief 从数据库读取所有的城市信息（简述）
+     */
+    public List<City> loadHisoryCities() {
+        List<City> list = new ArrayList<City>();
+        Cursor cursor = db.query("HistoryCity", null, null, null , null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                City city = new City();
+                city.setCityId(cursor.getString(cursor.getColumnIndex("city_id")));
+                city.setCityName(cursor.getString(cursor.getColumnIndex("city_name")));
+                city.setCityPath(cursor.getString(cursor.getColumnIndex("city_path")));
+                list.add(city);
             } while (cursor.moveToNext());
         }
         if (cursor != null) {
             cursor.close();
         }
         return list;
+    }
+
+    /**
+     *  
+     *
+     * @brief   从数据库删除所有的城市信息（简述）
+     */
+    public void deleteHistoryCities() {
+        db.delete("HistoryCity", null, null);
     }
 }

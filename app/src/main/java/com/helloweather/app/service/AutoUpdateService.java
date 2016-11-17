@@ -13,6 +13,7 @@ import com.helloweather.app.receiver.AlarmReceiver;
 import com.helloweather.app.util.HttpCallbackListener;
 import com.helloweather.app.util.HttpUtil;
 import com.helloweather.app.util.LogUtil;
+import com.helloweather.app.util.MyApplication;
 import com.helloweather.app.util.Utility;
 
 /**
@@ -73,8 +74,8 @@ public class AutoUpdateService extends Service {
 //        publishTimeText.setText(R.string.synchronizing);
         LogUtil.d("weatherRefresh", "refreshWeather");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherCode = prefs.getString("weather_code", "");
-        String address = "http://10.0.2.2:8080/" + weatherCode + ".html";
+        String cityId = prefs.getString("city_id", "");
+        String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c&start=0&days=3";
         HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(String response) {

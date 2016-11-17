@@ -28,7 +28,7 @@ public class HttpUtil {
                     connection.setReadTimeout(8000);
                     LogUtil.d("ceshi", "read ");
                     connection.setDoInput(true);
-                    connection.setDoOutput(true);
+                    connection.setDoOutput(false);
                     InputStream in = connection.getInputStream();
                     LogUtil.d("ceshi", "in " + in.toString());
                     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -49,7 +49,8 @@ public class HttpUtil {
                         // 回调onError（）方法
                         listener.onError(e);
                     }
-                    LogUtil.d("ceshi", "e.getMessage" + e.getMessage());
+                    LogUtil.d("ceshi", "e.getMessage");
+                    e.printStackTrace();
                 }
             }
         }).start();

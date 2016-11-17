@@ -1,8 +1,19 @@
 <resources>
     <string name="app_name">Hello天气</string>
     <string name="chinese">中国</string>
-    <string name="synchronizing">同步中...</string>
+    <string name="synchronizing">同步中&#8230;</string>
     <string name="sync_failure">同步失败</string>
+    <string name="loading">正在加载&#8230;</string>
+    <string name="load_failure">加载失败</string>
     <string name="today">今天</string>
-    <string name="publish">发布</string>
+    <string name="publish_time">发布时间：</string>
+    <string name="search_city">搜索城市</string>
+    <string name="input_city">请输入城市名拼音</string>
+    <string name="choose_city">选择城市</string>
+    <string name="no_search_city">没有查询到该城市，请重新搜索城市</string>
+    <string name="no_history_city">无历史查询城市，请搜索城市</string>
+    <string name="no_input_city">没有输入城市，请重新输入</string>
+    <string name="delete_history_record">清除历史记录</string>
+    <string name="degree">℃</string>
+
 </resources>

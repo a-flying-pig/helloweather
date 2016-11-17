@@ -7,20 +7,18 @@ package com.helloweather.app.model;
  */
 public class City {
 
-    private int id;
+    private String cityId;
 
     private String cityName;
 
-    private String cityCode;
+    private String cityPath;
 
-    private int provinceId;
-
-    public void setId(int id) {
-        this.id = id;
+    public void setCityId(String cityId) {
+        this.cityId = cityId;
     }
 
-    public int getId() {
-        return id;
+    public String getCityId() {
+        return cityId;
     }
 
     public void setCityName(String cityName) {
@@ -31,19 +29,11 @@ public class City {
         return cityName;
     }
 
-    public void setCityCode(String cityCode) {
-        this.cityCode = cityCode;
+    public void setCityPath(String cityPath) {
+        this.cityPath = cityPath;
     }
 
-    public String getCityCode() {
-        return cityCode;
-    }
-
-    public void setProvinceId(int provinceId) {
-        this.provinceId = provinceId;
-    }
-
-    public int getProvinceId() {
-        return provinceId;
+    public String getCityPath() {
+        return cityPath;
     }
 }

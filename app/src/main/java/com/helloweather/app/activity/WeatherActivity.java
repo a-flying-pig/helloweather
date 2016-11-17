@@ -19,11 +19,14 @@ import com.helloweather.app.service.AutoUpdateService;
 import com.helloweather.app.util.HttpCallbackListener;
 import com.helloweather.app.util.HttpUtil;
 import com.helloweather.app.util.LogUtil;
+import com.helloweather.app.util.MyApplication;
 import com.helloweather.app.util.Utility;
 
 public class WeatherActivity extends AppCompatActivity implements View.OnClickListener{
 
     private LinearLayout weatherInfoLayout;
+
+    private MyUiReceiver myUiReceiver;
 
     /**
      * 用于显示城市名称
@@ -77,16 +80,17 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         temp1Text = (TextView) findViewById(R.id.temp1);
         temp2Text = (TextView) findViewById(R.id.temp2);
         currentDataText = (TextView) findViewById(R.id.current_date);
-        String countryCode = getIntent().getStringExtra("country_code");
-        if (!TextUtils.isEmpty(countryCode)) {
-            // 有县级代号时就去查询天气
+        String cityId = getIntent().getStringExtra("cityId");
+        if (!TextUtils.isEmpty(cityId)) {
+            // 有城市代号时就去查询天气
             publishTimeText.setText(R.string.synchronizing);
             weatherInfoLayout.setVisibility(View.INVISIBLE);
             cityNameText.setVisibility(View.INVISIBLE);
-            queryWeatherCode(countryCode);
+            queryWeatherInfo(cityId);
         } else {
             // 没有县级代号时就直接显示本地天气
             showWeather();
+            //启动定时服务
             Intent serviceIntent = new Intent(this, AutoUpdateService.class);
             startService(serviceIntent);
         }
@@ -97,9 +101,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         // 注册动态广播（更新UI（天气信息））
         IntentFilter intentFiler = new IntentFilter();
         intentFiler.addAction("com.app.helloweather.MY_UI_BROADCAST");
-        MyUiReceiver myUiReceiver = new MyUiReceiver();
+        myUiReceiver = new MyUiReceiver();
         registerReceiver(myUiReceiver, intentFiler);
+    }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(myUiReceiver);
     }
 
     @Override
@@ -114,9 +123,9 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.refresh_weather: // 更新天气
                 publishTimeText.setText(R.string.synchronizing);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-                String weatherCode = prefs.getString("weather_code", "");
-                if (!TextUtils.isEmpty(weatherCode)) {
-                    queryWeatherInfo(weatherCode);
+                String cityId = prefs.getString("city_id", "");
+                if (!TextUtils.isEmpty(cityId)) {
+                    queryWeatherInfo(cityId);
                 }
                 break;
             default:
@@ -127,25 +136,13 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     /**
      *  
      *
-     * @brief 查询县级代号所对应天气代号（简述）
-     *  @param   countryCode（县级天气代号）
-     */
-    private void queryWeatherCode(String countryCode) {
-        String address = "http://10.0.2.2:8080/" + countryCode + ".xml";
-        LogUtil.d("weatherTest", "queryWeatherCode " + address);
-        queryFromServer(address, "countryCode");
-    }
-
-    /**
-     *  
-     *
      * @brief 查询天气代号所对应的天气（简述）
      *  @param   weatherCode（天气代号）
      */
-    private void queryWeatherInfo(String weatherCode) {
-        String address = "http://10.0.2.2:8080/" + weatherCode + ".html";
+    private void queryWeatherInfo(String cityId) {
+        String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" +cityId + "&language=zh-Hans&unit=c&start=0&days=3";
         LogUtil.d("weatherTest", "queryWeatherInfo" + address);
-        queryFromServer(address, "weatherCode");
+        queryFromServer(address, "cityId");
     }
 
     /**
@@ -159,7 +156,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(final String response) {
-                if (type.equals("countryCode")) {
+                if (type.equals("weatherCodeNoUse")) {
                     if (!TextUtils.isEmpty(response)) {
                         // 从服务器中返回的数据中解析出天气代号
                         String[] array = response.split("\\|");
@@ -169,18 +166,19 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                             LogUtil.d("weatherTest", "queryFromServer  weatherCode " + weatherCode);
                         }
                     }
-                } else if ("weatherCode".equals(type)) {
+                } else if ("cityId".equals(type)) {
                     // 处理服务器返回的天气信息
+                    LogUtil.d("weatherTest", "queryFromServer  handleWeatherResponse START");
                     Utility.handleWeatherResponse(WeatherActivity.this, response);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             showWeather();
+                            // 启动定时服务
                             Intent serviceIntent = new Intent(WeatherActivity.this, AutoUpdateService.class);
                             startService(serviceIntent);
                         }
                     });
-                    LogUtil.d("weatherTest", "queryFromServer showWeather " );
                 }
             }
 
@@ -206,10 +204,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
         cityNameText.setText(prfs.getString("city_name", ""));
         temp1Text.setText(prfs.getString("temp1", ""));
-        temp2Text.setText(prfs.getString("temp2", ""));
+        String temperature = prfs.getString("temp2", "") + getString(R.string.degree);
+        temp2Text.setText(temperature);
         LogUtil.d("weatherTest", "showWeather  temp2 " + prfs.getString("temp2", ""));
         weatherDespText.setText(prfs.getString("weather_desp", ""));
-        String publishTime = this.getString(R.string.today) + prfs.getString("publish_time", "") + this.getString(R.string.publish);
+        String publishTime = this.getString(R.string.publish_time) + prfs.getString("publish_time", "");
         LogUtil.d("weatherTest", "showWeather  publishTime " + publishTime);
         publishTimeText.setText(publishTime);
         currentDataText.setText(prfs.getString("current_date", ""));

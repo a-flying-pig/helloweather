@@ -10,31 +10,22 @@ import android.database.sqlite.SQLiteOpenHelper;
  *created at 2016-11-10 17:28
  */
 public class HelloWeatherOpenHelper extends SQLiteOpenHelper{
-    /**
-     *@brief Province表建表语句
-     */
-    public static final String CREATE_PROVINCE = "create table Province ("
-            + "id integer primary key autoincrement, "
-            + "province_name text, "
-            + "province_code text)";
 
     /**
      *@brief City表建表语句
      */
     public static final String CREATE_CITY = "create table City ("
-            + "id integer primary key autoincrement, "
+            + "city_id text, "
             + "city_name text, "
-            + "city_code text, "
-            + "province_id integer)";
+            + "city_path text)";
 
     /**
-     *@brief Country表建表语句
+     *@brief HistoryCity表建表语句
      */
-    public static final String CREATE_COUNTRY = "create table Country ("
-            + "id integer primary key autoincrement, "
-            + "country_name text, "
-            + "country_code text, "
-            + "city_id integer)";
+    public static final String CREATE_HISTORYCITY = "create table HistoryCity ("
+            + "city_id text, "
+            + "city_name text, "
+            + "city_path text)";
 
     /**
      *构造函数
@@ -47,9 +38,8 @@ public class HelloWeatherOpenHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_PROVINCE);
         db.execSQL(CREATE_CITY);
-        db.execSQL(CREATE_COUNTRY);
+        db.execSQL(CREATE_HISTORYCITY);
     }
 
     @Override
