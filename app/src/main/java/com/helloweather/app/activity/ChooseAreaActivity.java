@@ -156,6 +156,7 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
             helloWeatherDB.deleteCities();
         } else {
             Toast.makeText(this, R.string.no_search_city, Toast.LENGTH_SHORT).show();
+            queryHistoryCities();
         }
     }
 
