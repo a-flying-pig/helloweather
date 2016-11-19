@@ -31,8 +31,14 @@ public class HttpUtil {
                     connection.setDoOutput(false);
                     int status = connection.getResponseCode();
                     LogUtil.d("ceshi", "status " + status);
-                    InputStream in = connection.getInputStream();
-                    LogUtil.d("ceshi", "in " + in.toString());
+                    InputStream in = null;
+                    if (status == 200) { // 如果是200(访问成功)，获取正常的输入流
+                        in = connection.getInputStream();
+                        LogUtil.d("ceshi", "in " + in.toString());
+                    } else { // 如果不是200，比如说经常出现的403（拒绝访问），则获取错误流
+                        in = connection.getErrorStream();
+                        LogUtil.d("ceshi", "in " + in.toString());
+                    }
                     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                     StringBuilder response = new StringBuilder();
                     String line;
@@ -42,7 +48,7 @@ public class HttpUtil {
                     if (listener != null) {
                         // 回调onFinish（）方法
 //                        int getId = id;
-                        LogUtil.d("ceshi", response.toString());
+                        LogUtil.d("ceshi","response" + response.toString());
                         listener.onFinish(response.toString());
                     }
                     LogUtil.d("ceshi", "response.toString()" + response.toString());

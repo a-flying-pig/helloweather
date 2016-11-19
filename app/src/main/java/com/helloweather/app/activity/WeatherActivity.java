@@ -6,13 +6,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.helloweather.app.R;
 import com.helloweather.app.service.AutoUpdateService;
@@ -26,6 +30,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private LinearLayout weatherInfoLayout;
 
+    private static final int GET_INFO_FAIL = 0;
+
     private MyUiReceiver myUiReceiver;
 
     /**
@@ -37,6 +43,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      * 用于显示发布时间
      */
     private TextView publishTimeText;
+
+    /**
+     * 用于显示天气图片
+     */
+    private ImageView fistDayImagine;
 
     /**
      * 用于显示天气信息描述
@@ -68,6 +79,16 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      */
     private Button refreshWeather;
 
+    Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == GET_INFO_FAIL) {
+                publishTimeText.setText(R.string.sync_failure);
+                Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +101,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         temp1Text = (TextView) findViewById(R.id.temp1);
         temp2Text = (TextView) findViewById(R.id.temp2);
         currentDataText = (TextView) findViewById(R.id.current_date);
+        fistDayImagine = (ImageView) findViewById(R.id.first_day);
+        fistDayImagine.setImageResource(Utility.parsePictureId("99"));
         String cityId = getIntent().getStringExtra("cityId");
         if (!TextUtils.isEmpty(cityId)) {
             // 有城市代号时就去查询天气
@@ -142,7 +165,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private void queryWeatherInfo(String cityId) {
         String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" +cityId + "&language=zh-Hans&unit=c&start=0&days=3";
         LogUtil.d("weatherTest", "queryWeatherInfo" + address);
-        queryFromServer(address, "cityId");
+        queryFromServer(address);
     }
 
     /**
@@ -152,21 +175,16 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      *  @param   address（传入的地址）
      *  @param   type（查询类型）
      */
-    private void queryFromServer(final String address, final String type) {
+    private void queryFromServer(final String address) {
         HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(final String response) {
-                if (type.equals("weatherCodeNoUse")) {
-                    if (!TextUtils.isEmpty(response)) {
-                        // 从服务器中返回的数据中解析出天气代号
-                        String[] array = response.split("\\|");
-                        if (array !=null && array.length == 2) {
-                            String weatherCode = array[1];
-                            queryWeatherInfo(weatherCode);
-                            LogUtil.d("weatherTest", "queryFromServer  weatherCode " + weatherCode);
-                        }
-                    }
-                } else if ("cityId".equals(type)) {
+                if (response.contains("AP")) { // 如果返回的数据包含“AP”则说明没有正常访问，弹出获取信息失败文字
+                    LogUtil.d("ceshi", "response length" + response.length());
+                    Message message = new Message();
+                    message.what = GET_INFO_FAIL;
+                    mHandler.sendMessage(message);
+                } else {
                     // 处理服务器返回的天气信息
                     LogUtil.d("weatherTest", "queryFromServer  handleWeatherResponse START");
                     Utility.handleWeatherResponse(WeatherActivity.this, response);

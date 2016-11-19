@@ -102,7 +102,9 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
                     Toast.makeText(this, R.string.no_input_city,Toast.LENGTH_SHORT).show();
                 } else {
                     try { // 将输入的数据转换成"UTF-8"类型，为了是输入的是城市时也能搜索
+//                        queryCity = "%E6%88%90%E9%83%BD";
                         queryCity = URLEncoder.encode(queryCity,"UTF-8");
+//                        queryCity = URLDecoder.decode(queryCity, "UTF-8");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -133,7 +135,7 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
         } else {
             dataList.clear();
             adapter.notifyDataSetChanged();
-            Toast.makeText(this, R.string.no_history_city, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, R.string.no_history_city, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -163,7 +165,7 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
     /**
      *  
      *
-     * @brief 根据传入的代号和类型从服务器上查询省市县数据（简述）
+     * @brief 根据输入的数据（拼音，中文，等）从服务器上查询城市数据（简述）
      *  @param   code（省或市或县代号）
      *  @param   type（省或市或县）
      */

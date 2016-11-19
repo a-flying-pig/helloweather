@@ -7,86 +7,219 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="#484E61">
+        android:background="#484E61"
+        android:id="@+id/title_layout">
 
         <Button
             android:id="@+id/switch_city"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:background="@drawable/shezhi"/>
+            android:layout_marginStart="10dp"
+            android:background="@drawable/shezhi" />
 
         <TextView
             android:id="@+id/city_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:text="深圳"
             android:textColor="#fff"
-            android:textSize="24sp"/>
+            android:textSize="24sp" />
+
         <Button
             android:id="@+id/refresh_weather"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/refresh"/>
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/refresh" />
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#27A5F9">
+        android:background="#27A5F9"
+        android:id="@+id/weather_info_layout">
 
         <TextView
             android:id="@+id/publish_time_text"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:layout_marginRight="10dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
+            android:background="#27A5F9"
+            android:text="发布时间:2016-11-18T21:00:00+08:00"
             android:textColor="#FFF"
-            android:textSize="18sp"/>
+            android:textSize="18sp" />
 
-        <LinearLayout
-            android:id="@+id/weather_info_layout"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:orientation="vertical">
+            android:layout_below="@+id/publish_time_text"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="25dp"
+            android:background="#27A5F9"
+            android:text="@string/have_nice_day"
+            android:textColor="#FFF"
+            android:textSize="36sp"
+            android:id="@+id/textView2" />
+
+        <RelativeLayout
+            android:id="@+id/real_time_info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="170dp"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/publish_time_text"
+            android:layout_marginTop="90dp"
+            android:background="#27A5F9">
+
+
+            <ImageView
+                android:id="@+id/real_time_picture"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/two"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true" />
 
             <TextView
-                android:id="@+id/current_date"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:text="@string/real_time_weather"
                 android:textColor="#FFF"
-                android:textSize="18sp"/>
+                android:textSize="24sp"
+                android:id="@+id/textView"
+                android:layout_alignParentTop="true"
+                android:layout_toStartOf="@+id/real_time_picture" />
 
             <TextView
-                android:id="@+id/weather_desp"
+                android:id="@+id/real_time_weather_desp"
                 android:layout_width="wrap_content"
                 android:layout_height="60sp"
                 android:layout_gravity="center_horizontal"
                 android:gravity="center"
+                android:text="晴"
                 android:textColor="#FFF"
-                android:textSize="40sp" />
+                android:textSize="40sp"
+                android:layout_below="@+id/real_time_picture"
+                android:layout_centerHorizontal="true" />
+
+            <TextView
+                android:id="@+id/real_time_tmp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="12C"
+                android:textColor="#FFF"
+                android:textSize="40sp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_below="@+id/real_time_info_layout"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:id="@+id/three_day_weather_info">
+            <RelativeLayout
+            android:id="@+id/first_day_layout"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:background="#27A5F9"
+            android:orientation="horizontal"
+            android:layout_below="@+id/real_time_info_layout">
+
+            <TextView
+                android:id="@+id/first_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="11月18日"
+                android:textColor="#FFF"
+                android:textSize="16sp"
+                android:layout_alignParentTop="true"
+                android:layout_alignEnd="@+id/linearLayout" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_gravity="center_horizontal"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/linearLayout"
+                android:layout_above="@+id/linearLayout2"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="33dp">
 
                 <TextView
-                    android:id="@+id/temp1"
+                    android:id="@+id/first_day_desp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:text="晴"
                     android:textColor="#FFF"
-                    android:textSize="40sp"/>
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/first_day_imagine"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/two"
+                    android:layout_gravity="center_vertical"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/linearLayout2"
+                android:layout_above="@+id/linearLayout3"
+                android:layout_alignStart="@+id/linearLayout"
+                android:layout_marginBottom="28dp">
+
+                <TextView
+                    android:id="@+id/first_night_desp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:text="晴"
+                    android:textColor="#FFF"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/first_night_imagine"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/two"
+                    android:layout_gravity="center_vertical"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="20dp"
+                android:layout_centerHorizontal="true"
+                android:id="@+id/linearLayout3">
+
+                <TextView
+                    android:id="@+id/first_temp1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:text="12"
+                    android:textColor="#FFF"
+                    android:textSize="24sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -94,18 +227,254 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
-                    android:text="~"
+                    android:text="@string/to"
                     android:textColor="#FFF"
-                    android:textSize="40sp"/>
+                    android:textSize="24sp"/>
 
                 <TextView
-                    android:id="@+id/temp2"
+                    android:id="@+id/first_temp2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
+                    android:text="18"
                     android:textColor="#FFF"
-                    android:textSize="40sp"/>
+                    android:textSize="24sp" />
             </LinearLayout>
+
+        </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/second_day_layout"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="#27A5F9"
+                android:orientation="horizontal"
+                android:layout_below="@+id/real_time_info_layout">
+
+                <TextView
+                    android:id="@+id/second_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="11月18日"
+                    android:textColor="#FFF"
+                    android:textSize="16sp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignEnd="@+id/second_linearLayout" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:id="@+id/second_linearLayout"
+                    android:layout_above="@+id/second_linearLayout2"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="33dp">
+
+                    <TextView
+                        android:id="@+id/second_day_desp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="晴"
+                        android:textColor="#FFF"
+                        android:textSize="18sp" />
+
+                    <ImageView
+                        android:id="@+id/second_day_imagine"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/two"
+                        android:layout_gravity="center_vertical"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:id="@+id/second_linearLayout2"
+                    android:layout_above="@+id/second_linearLayout3"
+                    android:layout_alignStart="@+id/second_linearLayout"
+                    android:layout_marginBottom="28dp">
+
+                    <TextView
+                        android:id="@+id/second_night_desp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="晴"
+                        android:textColor="#FFF"
+                        android:textSize="18sp" />
+
+                    <ImageView
+                        android:id="@+id/second_night_imagine"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/two"
+                        android:layout_gravity="center_vertical"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginBottom="20dp"
+                    android:layout_centerHorizontal="true"
+                    android:id="@+id/second_linearLayout3">
+
+                    <TextView
+                        android:id="@+id/second_temp1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="12"
+                        android:textColor="#FFF"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:text="@string/to"
+                        android:textColor="#FFF"
+                        android:textSize="24sp"/>
+
+                    <TextView
+                        android:id="@+id/second_temp2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="18"
+                        android:textColor="#FFF"
+                        android:textSize="24sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/third_day_layout"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="#27A5F9"
+                android:orientation="horizontal"
+                android:layout_below="@+id/real_time_info_layout">
+
+                <TextView
+                    android:id="@+id/third_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="11月18日"
+                    android:textColor="#FFF"
+                    android:textSize="16sp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignEnd="@+id/third_linearLayout" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:id="@+id/third_linearLayout"
+                    android:layout_above="@+id/third_linearLayout2"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="33dp">
+
+                    <TextView
+                        android:id="@+id/third_day_desp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="晴"
+                        android:textColor="#FFF"
+                        android:textSize="18sp" />
+
+                    <ImageView
+                        android:id="@+id/third_day_imagine"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/two"
+                        android:layout_gravity="center_vertical"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:id="@+id/third_linearLayout2"
+                    android:layout_above="@+id/third_linearLayout3"
+                    android:layout_alignStart="@+id/third_linearLayout"
+                    android:layout_marginBottom="28dp">
+
+                    <TextView
+                        android:id="@+id/third_night_desp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:text="晴"
+                        android:textColor="#FFF"
+                        android:textSize="18sp" />
+
+                    <ImageView
+                        android:id="@+id/third_night_imagine"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/two"
+                        android:layout_gravity="center_vertical"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginBottom="20dp"
+                    android:layout_centerHorizontal="true"
+                    android:id="@+id/third_linearLayout3">
+
+                    <TextView
+                        android:id="@+id/third_temp1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="12"
+                        android:textColor="#FFF"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:text="@string/to"
+                        android:textColor="#FFF"
+                        android:textSize="24sp"/>
+
+                    <TextView
+                        android:id="@+id/third_temp2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="18"
+                        android:textColor="#FFF"
+                        android:textSize="24sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
+
+
+
+
         </LinearLayout>
+
+
+
     </RelativeLayout>
 </LinearLayout>

@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.helloweather.app.R;
 import com.helloweather.app.db.HelloWeatherDB;
 import com.helloweather.app.gson.CityInfo;
 import com.helloweather.app.gson.WeatherInfo;
@@ -116,15 +117,18 @@ public class Utility {
         }*/
         Gson gson = new Gson();
         WeatherInfo weatherInfo =gson.fromJson(response, WeatherInfo.class);
-        for (int i = 0; i < weatherInfo.results.size(); i++) {
-            WeatherInfo.ResultsInfo resultsInfo = weatherInfo.results.get(i);
-            String cityId = resultsInfo.location.id;
-            String cityName = resultsInfo.location.name;
-            String temp1 = resultsInfo.daily.get(0).low;
-            String temp2 = resultsInfo.daily.get(0).high;
-            String weatherDesp = resultsInfo.daily.get(0).text_day;
-            String publishTime = resultsInfo.last_update;
-            saveWeatherInfo(context, cityId, cityName, temp1, temp2, weatherDesp, publishTime);
+        if (weatherInfo != null) {
+            for (int i = 0; i < weatherInfo.results.size(); i++) {
+                WeatherInfo.ResultsInfo resultsInfo = weatherInfo.results.get(i);
+                String cityId = resultsInfo.location.id;
+                String cityName = resultsInfo.location.name;
+                String temp1 = resultsInfo.daily.get(0).low;
+                String temp2 = resultsInfo.daily.get(0).high;
+                String weatherDesp = resultsInfo.daily.get(0).text_day;
+                String publishTime = resultsInfo.last_update;
+                saveWeatherInfo(context, cityId, cityName, temp1, temp2, weatherDesp, publishTime);
+            }
+
         }
     }
 
@@ -147,5 +151,140 @@ public class Utility {
         editor.putString("publish_time", publishTime);
         editor.putString("current_date", sdf.format(new Date()));
         editor.commit();
+    }
+
+    /**
+     *  
+     *
+     * @brief   将获取的天气现象图片代码转换为图片的ID地址（简述）
+     * @param   pictureCode（获取的天气现象图片代码）
+     */
+    public static int parsePictureId(String pictureCode) {
+        int pictureId = R.drawable.nity_nine;
+        switch (pictureCode) {
+            case "0":
+                pictureId = R.drawable.zero;
+                break;
+            case "1":
+                pictureId= R.drawable.one;
+                break;
+            case "2":
+                pictureId = R.drawable.two;
+                break;
+            case "3":
+                pictureId = R.drawable.three;
+                break;
+            case "4":
+                pictureId = R.drawable.four;
+                break;
+            case "5":
+                pictureId = R.drawable.five;
+                break;
+            case "6":
+                pictureId= R.drawable.six;
+                break;
+            case "7":
+                pictureId = R.drawable.seven;
+                break;
+            case "8":
+                pictureId = R.drawable.eight;
+                break;
+            case "9":
+                pictureId = R.drawable.nine;
+                break;
+            case "10":
+                pictureId = R.drawable.ten;
+                break;
+            case "11":
+                pictureId= R.drawable.eleven;
+                break;
+            case "12":
+                pictureId = R.drawable.twelve;
+                break;
+            case "13":
+                pictureId = R.drawable.thirteen;
+                break;
+            case "14":
+                pictureId = R.drawable.fourteen;
+                break;
+            case "15":
+                pictureId = R.drawable.fifteen;
+                break;
+            case "16":
+                pictureId= R.drawable.sixteen;
+                break;
+            case "17":
+                pictureId = R.drawable.seventeen;
+                break;
+            case "18":
+                pictureId = R.drawable.eighteen;
+                break;
+            case "19":
+                pictureId = R.drawable.nineteen;
+                break;
+            case "20":
+                pictureId = R.drawable.twenty;
+                break;
+            case "21":
+                pictureId= R.drawable.twenty_one;
+                break;
+            case "22":
+                pictureId = R.drawable.thirty_two;
+                break;
+            case "23":
+                pictureId = R.drawable.twenty_three;
+                break;
+            case "24":
+                pictureId = R.drawable.twenty_four;
+                break;
+            case "25":
+                pictureId = R.drawable.twenty_five;
+                break;
+            case "26":
+                pictureId= R.drawable.twenty_six;
+                break;
+            case "27":
+                pictureId = R.drawable.twenty_seven;
+                break;
+            case "28":
+                pictureId = R.drawable.twenty_eight;
+                break;
+            case "29":
+                pictureId = R.drawable.twenty_nine;
+                break;
+            case "30":
+                pictureId = R.drawable.thirty;
+                break;
+            case "31":
+                pictureId= R.drawable.thirty_one;
+                break;
+            case "32":
+                pictureId = R.drawable.thirty_two;
+                break;
+            case "33":
+                pictureId = R.drawable.thirty_three;
+                break;
+            case "34":
+                pictureId = R.drawable.thirty_four;
+                break;
+            case "35":
+                pictureId = R.drawable.thirty_five;
+                break;
+            case "36":
+                pictureId= R.drawable.thirty_six;
+                break;
+            case "37":
+                pictureId = R.drawable.thirty_seven;
+                break;
+            case "38":
+                pictureId = R.drawable.thirty_eight;
+                break;
+            case "99":
+                pictureId = R.drawable.nity_nine;
+                break;
+            default:
+                break;
+        }
+        return pictureId;
     }
 }
