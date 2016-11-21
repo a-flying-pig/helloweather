@@ -76,7 +76,7 @@ public class HelloWeatherDB {
      */
     public List<City> loadCities() {
         List<City> list = new ArrayList<City>();
-        Cursor cursor = db.query("City", null, null, null , null, null, null);
+        Cursor cursor = db.query("City", null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 City city = new City();
@@ -95,7 +95,7 @@ public class HelloWeatherDB {
     /**
      *  
      *
-     * @brief   从数据库删除所有的城市信息（简述）
+     * @brief 从数据库删除所有的城市信息（简述）
      */
     public void deleteCities() {
         db.delete("City", null, null);
@@ -111,7 +111,7 @@ public class HelloWeatherDB {
         // 查询是否存在，不存在则加入数据库
         String cityId = null;
 //        Cursor cursor = db.query("HistoryCity", null, "city_id = ?",new String[] {city.getCityId()}, null, null, null);
-        Cursor cursor = db.rawQuery("select * from HistoryCity where city_id = ?", new String[] {city.getCityId()});
+        Cursor cursor = db.rawQuery("select * from HistoryCity where city_id = ?", new String[]{city.getCityId()});
         if (cursor.moveToFirst()) {
             do {
                 cityId = cursor.getString(cursor.getColumnIndex("city_id"));
@@ -138,7 +138,7 @@ public class HelloWeatherDB {
      */
     public List<City> loadHisoryCities() {
         List<City> list = new ArrayList<City>();
-        Cursor cursor = db.query("HistoryCity", null, null, null , null, null, null);
+        Cursor cursor = db.query("HistoryCity", null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 City city = new City();
@@ -157,7 +157,7 @@ public class HelloWeatherDB {
     /**
      *  
      *
-     * @brief   从数据库删除所有的城市信息（简述）
+     * @brief 从数据库删除所有的城市信息（简述）
      */
     public void deleteHistoryCities() {
         db.delete("HistoryCity", null, null);

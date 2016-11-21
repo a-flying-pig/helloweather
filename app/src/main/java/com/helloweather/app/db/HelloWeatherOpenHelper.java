@@ -5,14 +5,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- *@brief  建表辅助类
- *@author HuaZhu
- *created at 2016-11-10 17:28
+ * @author HuaZhu
+ *         created at 2016-11-10 17:28
+ * @brief 建表辅助类
  */
-public class HelloWeatherOpenHelper extends SQLiteOpenHelper{
+public class HelloWeatherOpenHelper extends SQLiteOpenHelper {
 
     /**
-     *@brief City表建表语句
+     * @brief City表建表语句
      */
     public static final String CREATE_CITY = "create table City ("
             + "city_id text, "
@@ -20,7 +20,7 @@ public class HelloWeatherOpenHelper extends SQLiteOpenHelper{
             + "city_path text)";
 
     /**
-     *@brief HistoryCity表建表语句
+     * @brief HistoryCity表建表语句
      */
     public static final String CREATE_HISTORYCITY = "create table HistoryCity ("
             + "city_id text, "
@@ -28,12 +28,13 @@ public class HelloWeatherOpenHelper extends SQLiteOpenHelper{
             + "city_path text)";
 
     /**
-     *构造函数
-     *@author HuaZhu
-     *created at 2016-11-10 17:30
+     * 构造函数
+     *
+     * @author HuaZhu
+     * created at 2016-11-10 17:30
      */
-    public HelloWeatherOpenHelper(Context context, String name,SQLiteDatabase.CursorFactory factory, int version){
-        super(context, name, factory,version);
+    public HelloWeatherOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
     }
 
     @Override
@@ -43,5 +44,6 @@ public class HelloWeatherOpenHelper extends SQLiteOpenHelper{
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion,int newVersion){}
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    }
 }

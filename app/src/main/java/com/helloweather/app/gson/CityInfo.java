@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class CityInfo {
     public ArrayList<CityResultsInfo> results;
 
-    public static class  CityResultsInfo {
+    public static class CityResultsInfo {
         public String id;
         public String name;
         public String country;

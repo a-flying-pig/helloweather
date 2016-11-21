@@ -14,7 +14,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,11 +26,15 @@ import com.helloweather.app.util.LogUtil;
 import com.helloweather.app.util.MyApplication;
 import com.helloweather.app.util.Utility;
 
-public class WeatherActivity extends AppCompatActivity implements View.OnClickListener{
+public class WeatherActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private LinearLayout weatherInfoLayout;
+    private RelativeLayout weatherInfoLayout;
 
     private static final int GET_INFO_FAIL = 0;
+
+    private static final int REAL_TIME_WEATHER = 0;
+
+    private static final int DAILY_WEATHER = 1;
 
     private MyUiReceiver myUiReceiver;
 
@@ -45,39 +49,49 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private TextView publishTimeText;
 
     /**
-     * 用于显示天气图片
+     * 用于显示实时天气变量
      */
-    private ImageView fistDayImagine;
+    private ImageView nowImagine;
+    private TextView nowDesp;
+    private TextView nowTemp;
 
     /**
-     * 用于显示天气信息描述
+     * 用于显示第一天天气变量
      */
-    private TextView weatherDespText;
+    private TextView firstDate;
+    private TextView firstDayDesp;
+    private ImageView firstDayImagine;
+    private TextView firstNightDesp;
+    private ImageView firstNightImagine;
+    private TextView firstTemp1;
+    private TextView firstTemp2;
 
     /**
-     * 用于显示气温1
+     * 用于显示第二天天气变量
      */
-    private TextView temp1Text;
+    private TextView secondDate;
+    private TextView secondDayDesp;
+    private ImageView secondDayImagine;
+    private TextView secondNightDesp;
+    private ImageView secondNightImagine;
+    private TextView secondTemp1;
+    private TextView secondTemp2;
 
     /**
-     * 用于显示气温2
+     * 用于显示第三天天气变量
      */
-    private TextView temp2Text;
+    private TextView thirdDate;
+    private TextView thirdDayDesp;
+    private ImageView thirdDayImagine;
+    private TextView thirdNightDesp;
+    private ImageView thirdNightImagine;
+    private TextView thirdTemp1;
+    private TextView thirdTemp2;
 
     /**
-     * 用于显示当前日期
+     * 完成了几次天气信息查询
      */
-    private TextView currentDataText;
-
-    /**
-     * 切换城市按钮
-     */
-    private Button switchCity;
-
-    /**
-     * 更新天气按钮
-     */
-    private Button refreshWeather;
+    private int i = 0;
 
     Handler mHandler = new Handler() {
         @Override
@@ -93,16 +107,41 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.weather_layout);
-        // 初始化各控件
-        weatherInfoLayout = (LinearLayout) findViewById(R.id.weather_info_layout);
+        // 初始化标题栏及发布日期控件
+        weatherInfoLayout = (RelativeLayout) findViewById(R.id.weather_info_layout);
         cityNameText = (TextView) findViewById(R.id.city_name);
         publishTimeText = (TextView) findViewById(R.id.publish_time_text);
-        weatherDespText = (TextView) findViewById(R.id.weather_desp);
-        temp1Text = (TextView) findViewById(R.id.temp1);
-        temp2Text = (TextView) findViewById(R.id.temp2);
-        currentDataText = (TextView) findViewById(R.id.current_date);
-        fistDayImagine = (ImageView) findViewById(R.id.first_day);
-        fistDayImagine.setImageResource(Utility.parsePictureId("99"));
+        Button switchCity = (Button) findViewById(R.id.switch_city);
+        Button refreshWeather = (Button) findViewById(R.id.refresh_weather);
+        // 初始化实时天气变量
+        nowImagine = (ImageView) findViewById(R.id.real_time_picture);
+        nowDesp = (TextView) findViewById(R.id.real_time_weather_desp);
+        nowTemp = (TextView) findViewById(R.id.real_time_tmp);
+        // 初始化第一天的天气变量
+        firstDate = (TextView) findViewById(R.id.first_date);
+        firstDayDesp = (TextView) findViewById(R.id.first_day_desp);
+        firstDayImagine = (ImageView) findViewById(R.id.first_day_imagine);
+        firstNightDesp = (TextView) findViewById(R.id.first_night_desp);
+        firstNightImagine = (ImageView) findViewById(R.id.first_night_imagine);
+        firstTemp1 = (TextView) findViewById(R.id.first_temp1);
+        firstTemp2 = (TextView) findViewById(R.id.first_temp2);
+        // 初始化第二天的天气变量
+        secondDate = (TextView) findViewById(R.id.second_date);
+        secondDayDesp = (TextView) findViewById(R.id.second_day_desp);
+        secondDayImagine = (ImageView) findViewById(R.id.second_day_imagine);
+        secondNightDesp = (TextView) findViewById(R.id.second_night_desp);
+        secondNightImagine = (ImageView) findViewById(R.id.second_night_imagine);
+        secondTemp1 = (TextView) findViewById(R.id.second_temp1);
+        secondTemp2 = (TextView) findViewById(R.id.second_temp2);
+        // 初始化第三天的天气变量
+        thirdDate = (TextView) findViewById(R.id.third_date);
+        thirdDayDesp = (TextView) findViewById(R.id.third_day_desp);
+        thirdDayImagine = (ImageView) findViewById(R.id.third_day_imagine);
+        thirdNightDesp = (TextView) findViewById(R.id.third_night_desp);
+        thirdNightImagine = (ImageView) findViewById(R.id.third_night_imagine);
+        thirdTemp1 = (TextView) findViewById(R.id.third_temp1);
+        thirdTemp2 = (TextView) findViewById(R.id.third_temp2);
+        // 从ChooseAreaActivity活动跳转过来时执行的逻辑
         String cityId = getIntent().getStringExtra("cityId");
         if (!TextUtils.isEmpty(cityId)) {
             // 有城市代号时就去查询天气
@@ -110,15 +149,17 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             weatherInfoLayout.setVisibility(View.INVISIBLE);
             cityNameText.setVisibility(View.INVISIBLE);
             queryWeatherInfo(cityId);
+            // 启动定时更新服务
+            Intent serviceIntent = new Intent(WeatherActivity.this, AutoUpdateService.class);
+            startService(serviceIntent);
         } else {
-            // 没有县级代号时就直接显示本地天气
+            // 没有城市Id时就直接显示本地天气
             showWeather();
-            //启动定时服务
+            //启动定时更新服务
             Intent serviceIntent = new Intent(this, AutoUpdateService.class);
             startService(serviceIntent);
         }
-        switchCity = (Button) findViewById(R.id.switch_city);
-        refreshWeather = (Button) findViewById(R.id.refresh_weather);
+
         switchCity.setOnClickListener(this);
         refreshWeather.setOnClickListener(this);
         // 注册动态广播（更新UI（天气信息））
@@ -138,13 +179,12 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.switch_city: // 切换城市
-                Intent intent = new Intent(this,ChooseAreaActivity.class);
+                Intent intent = new Intent(this, ChooseAreaActivity.class);
                 intent.putExtra("from_weather_activity", true);
                 startActivity(intent);
                 finish();
                 break;
             case R.id.refresh_weather: // 更新天气
-                publishTimeText.setText(R.string.synchronizing);
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 String cityId = prefs.getString("city_id", "");
                 if (!TextUtils.isEmpty(cityId)) {
@@ -162,10 +202,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      * @brief 查询天气代号所对应的天气（简述）
      *  @param   weatherCode（天气代号）
      */
-    private void queryWeatherInfo(String cityId) {
-        String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" +cityId + "&language=zh-Hans&unit=c&start=0&days=3";
-        LogUtil.d("weatherTest", "queryWeatherInfo" + address);
-        queryFromServer(address);
+    public void queryWeatherInfo(String cityId) {
+        publishTimeText.setText(R.string.synchronizing);
+        String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c&start=0&days=3";
+        LogUtil.d("weatherTest", "queryWeatherInfo address" + address);
+        String address1 = "https://api.thinkpage.cn/v3/weather/now.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c";
+        LogUtil.d("weatherTest", "queryWeatherInfo address1" + address1);
+        queryFromServer(address, DAILY_WEATHER);
+        queryFromServer(address1, REAL_TIME_WEATHER);
     }
 
     /**
@@ -175,28 +219,36 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      *  @param   address（传入的地址）
      *  @param   type（查询类型）
      */
-    private void queryFromServer(final String address) {
+    private void queryFromServer(final String address, final int type) {
         HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(final String response) {
-                if (response.contains("AP")) { // 如果返回的数据包含“AP”则说明没有正常访问，弹出获取信息失败文字
+                if (response.contains("AP")) { // 如果返回的数据包含“AP”则说明没有正常访问，弹出获取信息失败提示
                     LogUtil.d("ceshi", "response length" + response.length());
                     Message message = new Message();
                     message.what = GET_INFO_FAIL;
                     mHandler.sendMessage(message);
+                    // 查询失败，重新归0
+                    i = 0;
                 } else {
+                    // 成功查询一次加1
+                    i++;
                     // 处理服务器返回的天气信息
                     LogUtil.d("weatherTest", "queryFromServer  handleWeatherResponse START");
-                    Utility.handleWeatherResponse(WeatherActivity.this, response);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showWeather();
-                            // 启动定时服务
-                            Intent serviceIntent = new Intent(WeatherActivity.this, AutoUpdateService.class);
-                            startService(serviceIntent);
-                        }
-                    });
+                    Utility.handleWeatherResponse(WeatherActivity.this, response, type);
+                    // 如果完成了两次的天气信息的查询，则显示天气信息
+                    if (i == 2) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                showWeather();
+                                LogUtil.d("weatherTest", "isFinishQuery  handleWeatherResponse START");
+                                // i(查询次数)值重新归0
+                                i = 0;
+                            }
+                        });
+
+                    }
                 }
             }
 
@@ -215,35 +267,70 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     /**
      *  
      *
-     * @brief   从SharedPreferences文件中读取存储的天气信息，并显示到界面上（简述）。
+     * @brief 从SharedPreferences文件中读取存储的天气信息，并显示到界面上（简述）。
      */
 
     public void showWeather() {
         SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+        // 显示标题栏及发布日期
         cityNameText.setText(prfs.getString("city_name", ""));
-        temp1Text.setText(prfs.getString("temp1", ""));
-        String temperature = prfs.getString("temp2", "") + getString(R.string.degree);
-        temp2Text.setText(temperature);
-        LogUtil.d("weatherTest", "showWeather  temp2 " + prfs.getString("temp2", ""));
-        weatherDespText.setText(prfs.getString("weather_desp", ""));
-        String publishTime = this.getString(R.string.publish_time) + prfs.getString("publish_time", "");
+        String editedDate = prfs.getString("publish_time", "").substring(0, 10);
+        String editedTime = prfs.getString("publish_time", "").substring(11, 16);
+        String publishTime = this.getString(R.string.publish_time) + editedDate + " " + editedTime;
         LogUtil.d("weatherTest", "showWeather  publishTime " + publishTime);
         publishTimeText.setText(publishTime);
-        currentDataText.setText(prfs.getString("current_date", ""));
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
+        // 显示实时天气
+        nowImagine.setImageResource(Utility.parsePictureId(prfs.getString("now_weather_code", "99"))); // 99 表示没有获得数据
+        nowDesp.setText(prfs.getString("now_weather_desp", ""));
+        String temperature = prfs.getString("now_temp", "") + getString(R.string.degree);
+        nowTemp.setText(temperature);
+        // 显示第一天的天气
+        firstDate.setText(prfs.getString("first_date", ""));
+        firstDayDesp.setText(prfs.getString("first_day_desp", ""));
+        firstDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("first_day_code", "99")));
+        firstNightDesp.setText(prfs.getString("first_night_desp", ""));
+        firstNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("first_night_code", "99")));
+        String firstT1 = prfs.getString("first_temp1", "");
+        firstTemp1.setText(firstT1);
+        String firstT2 = prfs.getString("first_temp2", "") + getString(R.string.degree);
+        firstTemp2.setText(firstT2);
+        // 显示第二天的天气
+        secondDate.setText(prfs.getString("second_date", ""));
+        secondDayDesp.setText(prfs.getString("second_day_desp", ""));
+        secondDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("second_day_code", "99")));
+        secondNightDesp.setText(prfs.getString("second_night_desp", ""));
+        secondNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("second_night_code", "99")));
+        String secondT1 = prfs.getString("second_temp1", "");
+        secondTemp1.setText(secondT1);
+        String secondT2 = prfs.getString("second_temp2", "") + getString(R.string.degree);
+        secondTemp2.setText(secondT2);
+        // 显示第三天的天气
+        thirdDate.setText(prfs.getString("third_date", ""));
+        thirdDayDesp.setText(prfs.getString("third_day_desp", ""));
+        thirdDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("third_day_code", "99")));
+        thirdNightDesp.setText(prfs.getString("third_night_desp", ""));
+        thirdNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("third_night_code", "99")));
+        String thirdT1 = prfs.getString("third_temp1", "");
+        thirdTemp1.setText(thirdT1);
+        String thirdT2 = prfs.getString("third_temp2", "") + getString(R.string.degree);
+        thirdTemp2.setText(thirdT2);
     }
 
     /**
      *  
      *
-     * @brief   接收数据更新的广播，收到从服务发送的广播，然后更新UI（天气信息）（简述）
+     * @brief 接收数据更新的广播，收到从服务发送的广播，然后更新UI（天气信息）（简述）
      */
     public class MyUiReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             LogUtil.d("weatherRefresh", "MyUiBroadcast start");
-            showWeather();
+            SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+            String cityId = prfs.getString("city_id", "");
+            queryWeatherInfo(cityId);
+
         }
     }
 }

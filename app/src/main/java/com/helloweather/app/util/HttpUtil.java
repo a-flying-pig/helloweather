@@ -48,7 +48,7 @@ public class HttpUtil {
                     if (listener != null) {
                         // 回调onFinish（）方法
 //                        int getId = id;
-                        LogUtil.d("ceshi","response" + response.toString());
+                        LogUtil.d("ceshi", "response" + response.toString());
                         listener.onFinish(response.toString());
                     }
                     LogUtil.d("ceshi", "response.toString()" + response.toString());

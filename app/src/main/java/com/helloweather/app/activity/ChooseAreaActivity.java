@@ -33,7 +33,7 @@ import java.util.List;
  *         created at 2016-11-11 11:31
  * @brief 用于遍历省市县数据
  */
-public class ChooseAreaActivity extends AppCompatActivity implements View.OnClickListener{
+public class ChooseAreaActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ProgressDialog progressDialog;
     private EditText queryEdit;
@@ -95,15 +95,15 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.query_button:
                 queryCity = queryEdit.getText().toString().replaceAll("\\s*", "");
                 if (TextUtils.isEmpty(queryCity)) {
-                    Toast.makeText(this, R.string.no_input_city,Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.no_input_city, Toast.LENGTH_SHORT).show();
                 } else {
                     try { // 将输入的数据转换成"UTF-8"类型，为了是输入的是城市时也能搜索
 //                        queryCity = "%E6%88%90%E9%83%BD";
-                        queryCity = URLEncoder.encode(queryCity,"UTF-8");
+                        queryCity = URLEncoder.encode(queryCity, "UTF-8");
 //                        queryCity = URLDecoder.decode(queryCity, "UTF-8");
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -121,7 +121,7 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
     /**
      *  
      *
-     * @brief   加载历史纪录城市，没有则提示没有历史纪录城市（简述）
+     * @brief 加载历史纪录城市，没有则提示没有历史纪录城市（简述）
      */
     private void queryHistoryCities() {
         cityList = helloWeatherDB.loadHisoryCities();

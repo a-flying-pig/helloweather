@@ -9,12 +9,9 @@ import com.google.gson.Gson;
 import com.helloweather.app.R;
 import com.helloweather.app.db.HelloWeatherDB;
 import com.helloweather.app.gson.CityInfo;
-import com.helloweather.app.gson.WeatherInfo;
+import com.helloweather.app.gson.DailyWeatherInfo;
+import com.helloweather.app.gson.RealTimeWeatherInfo;
 import com.helloweather.app.model.City;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 /**
  * @author HuaZhu
@@ -22,6 +19,10 @@ import java.util.Locale;
  * @brief 工具类，用于解析和处理服务器返回的省市县数据（其格式为JSON数据）
  */
 public class Utility {
+
+    private static final int REAL_TIME_WEATHER = 0;
+
+    private static final int DAILY_WEATHER = 1;
 
     /**
      *  
@@ -78,7 +79,7 @@ public class Utility {
      *  @param   context（上下文，环境）
      *  @param   response（服务器返回的JSON数据）
      */
-    public static void handleWeatherResponse(Context context, String response) {
+    public static void handleWeatherResponse(Context context, String response, int type) {
      /*   try {
             JSONObject jsonObject = new JSONObject(response);
             LogUtil.d("weatherTest", "jsonObject " + jsonObject);
@@ -116,48 +117,101 @@ public class Utility {
             e.printStackTrace();
         }*/
         Gson gson = new Gson();
-        WeatherInfo weatherInfo =gson.fromJson(response, WeatherInfo.class);
-        if (weatherInfo != null) {
-            for (int i = 0; i < weatherInfo.results.size(); i++) {
-                WeatherInfo.ResultsInfo resultsInfo = weatherInfo.results.get(i);
-                String cityId = resultsInfo.location.id;
-                String cityName = resultsInfo.location.name;
-                String temp1 = resultsInfo.daily.get(0).low;
-                String temp2 = resultsInfo.daily.get(0).high;
-                String weatherDesp = resultsInfo.daily.get(0).text_day;
-                String publishTime = resultsInfo.last_update;
-                saveWeatherInfo(context, cityId, cityName, temp1, temp2, weatherDesp, publishTime);
+        if (type == REAL_TIME_WEATHER) { // 实时的天气信息处理
+            RealTimeWeatherInfo realTimeWeatherInfo = gson.fromJson(response, RealTimeWeatherInfo.class);
+            if (realTimeWeatherInfo != null) {
+                RealTimeWeatherInfo.ResultInfo resultInfo = realTimeWeatherInfo.results.get(0);
+                String cityId = resultInfo.location.id;
+                String cityName = resultInfo.location.name;
+                String publishTime = resultInfo.last_update;
+                String nowWeatherCode = resultInfo.now.code;
+                String nowWeatherDesp = resultInfo.now.text;
+                String nowTemp = resultInfo.now.temperature;
+                // 存储实时信息
+                saveNowWeatherInfo(context, cityId, cityName, publishTime, nowWeatherCode, nowWeatherDesp, nowTemp);
             }
-
+        } else if (type == DAILY_WEATHER) { // 几天的天气信息数据处理
+            DailyWeatherInfo dailyWeatherInfo = gson.fromJson(response, DailyWeatherInfo.class);
+            if (dailyWeatherInfo != null) {
+                for (int i = 0; i < dailyWeatherInfo.results.size(); i++) {
+                    DailyWeatherInfo.ResultsInfo resultsInfo = dailyWeatherInfo.results.get(i);
+                    // 第一天的天气信息
+                    String firstDate = resultsInfo.daily.get(0).date;
+                    String firstDayDesp = resultsInfo.daily.get(0).text_day;
+                    String firstDayCode = resultsInfo.daily.get(0).code_day;
+                    String firstNightDesp = resultsInfo.daily.get(0).text_night;
+                    String firstNightCode = resultsInfo.daily.get(0).code_night;
+                    String firstTemp1 = resultsInfo.daily.get(0).low;
+                    String firstTemp2 = resultsInfo.daily.get(0).high;
+                    String order = "first";
+                    // 存储第一天的天气信息
+                    saveDailyWeatherInfo(context, firstDate, firstDayDesp, firstDayCode, firstNightDesp, firstNightCode, firstTemp1, firstTemp2, order);
+                    // 第二天的天气信息
+                    String secondDate = resultsInfo.daily.get(1).date;
+                    String secondDayDesp = resultsInfo.daily.get(1).text_day;
+                    String secondDayCode = resultsInfo.daily.get(1).code_day;
+                    String secondNightDesp = resultsInfo.daily.get(1).text_night;
+                    String secondNightCode = resultsInfo.daily.get(1).code_night;
+                    String secondTemp1 = resultsInfo.daily.get(1).low;
+                    String secondTemp2 = resultsInfo.daily.get(1).high;
+                    order = "second";
+                    // 存储第二天的天气信息
+                    saveDailyWeatherInfo(context, secondDate, secondDayDesp, secondDayCode, secondNightDesp, secondNightCode, secondTemp1, secondTemp2, order);
+                    // 第三天的天气信息
+                    String thirdDate = resultsInfo.daily.get(2).date;
+                    String thirdDayDesp = resultsInfo.daily.get(2).text_day;
+                    String thirdDayCode = resultsInfo.daily.get(2).code_day;
+                    String thirdNightDesp = resultsInfo.daily.get(2).text_night;
+                    String thirdNightCode = resultsInfo.daily.get(2).code_night;
+                    String thirdTemp1 = resultsInfo.daily.get(2).low;
+                    String thirdTemp2 = resultsInfo.daily.get(2).high;
+                    order = "third";
+                    // 存储第三天的天气信息
+                    saveDailyWeatherInfo(context, thirdDate, thirdDayDesp, thirdDayCode, thirdNightDesp, thirdNightCode, thirdTemp1, thirdTemp2, order);
+                }
+            }
         }
     }
 
     /**
      *  
      *
-     * @brief 将服务器返回的数据经解析后的所有天气信息储存到SharePreferences文件中（简述）
-     *  @param   （param描述参数）
-     *  @param   （）
+     * @brief 将服务器返回的实时天气数据经解析后的所有天气信息储存到SharePreferences文件中（简述）
      */
-    public static void saveWeatherInfo(Context context, String cityId, String cityName, String temp1, String temp2, String weatherDesp, String publishTime) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年M月d日", Locale.CHINA);
+    public static void saveNowWeatherInfo(Context context, String cityId, String cityName, String publishTime, String nowWeatherCode, String nowWeatherDesp, String nowTemp) {
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
         editor.putBoolean("city_selected", true);
         editor.putString("city_id", cityId);
         editor.putString("city_name", cityName);
-        editor.putString("temp1", temp1);
-        editor.putString("temp2", temp2);
-        editor.putString("weather_desp", weatherDesp);
         editor.putString("publish_time", publishTime);
-        editor.putString("current_date", sdf.format(new Date()));
-        editor.commit();
+        editor.putString("now_weather_code", nowWeatherCode);
+        editor.putString("now_weather_desp", nowWeatherDesp);
+        editor.putString("now_temp", nowTemp);
+        editor.apply();
     }
 
     /**
      *  
      *
-     * @brief   将获取的天气现象图片代码转换为图片的ID地址（简述）
-     * @param   pictureCode（获取的天气现象图片代码）
+     * @brief 将服务器返回的几天的天气数据经解析后的所有天气信息储存到SharePreferences文件中（简述）
+     */
+    public static void saveDailyWeatherInfo(Context context, String date, String dayDesp, String dayCode, String nightDesp, String nightCode, String temp1, String temp2, String order) {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putString(order + "_date", date);
+        editor.putString(order + "_day_desp", dayDesp);
+        editor.putString(order + "_day_code", dayCode);
+        editor.putString(order + "_night_desp", nightDesp);
+        editor.putString(order + "_night_code", nightCode);
+        editor.putString(order + "_temp1", temp1);
+        editor.putString(order + "_temp2", temp2);
+        editor.apply();
+    }
+
+    /**
+     *  
+     *
+     * @brief 将获取的天气现象图片代码转换为图片的ID地址（简述）
+     *  @param   pictureCode（获取的天气现象图片代码）
      */
     public static int parsePictureId(String pictureCode) {
         int pictureId = R.drawable.nity_nine;
@@ -166,7 +220,7 @@ public class Utility {
                 pictureId = R.drawable.zero;
                 break;
             case "1":
-                pictureId= R.drawable.one;
+                pictureId = R.drawable.one;
                 break;
             case "2":
                 pictureId = R.drawable.two;
@@ -181,7 +235,7 @@ public class Utility {
                 pictureId = R.drawable.five;
                 break;
             case "6":
-                pictureId= R.drawable.six;
+                pictureId = R.drawable.six;
                 break;
             case "7":
                 pictureId = R.drawable.seven;
@@ -196,7 +250,7 @@ public class Utility {
                 pictureId = R.drawable.ten;
                 break;
             case "11":
-                pictureId= R.drawable.eleven;
+                pictureId = R.drawable.eleven;
                 break;
             case "12":
                 pictureId = R.drawable.twelve;
@@ -211,7 +265,7 @@ public class Utility {
                 pictureId = R.drawable.fifteen;
                 break;
             case "16":
-                pictureId= R.drawable.sixteen;
+                pictureId = R.drawable.sixteen;
                 break;
             case "17":
                 pictureId = R.drawable.seventeen;
@@ -226,7 +280,7 @@ public class Utility {
                 pictureId = R.drawable.twenty;
                 break;
             case "21":
-                pictureId= R.drawable.twenty_one;
+                pictureId = R.drawable.twenty_one;
                 break;
             case "22":
                 pictureId = R.drawable.thirty_two;
@@ -241,7 +295,7 @@ public class Utility {
                 pictureId = R.drawable.twenty_five;
                 break;
             case "26":
-                pictureId= R.drawable.twenty_six;
+                pictureId = R.drawable.twenty_six;
                 break;
             case "27":
                 pictureId = R.drawable.twenty_seven;
@@ -256,7 +310,7 @@ public class Utility {
                 pictureId = R.drawable.thirty;
                 break;
             case "31":
-                pictureId= R.drawable.thirty_one;
+                pictureId = R.drawable.thirty_one;
                 break;
             case "32":
                 pictureId = R.drawable.thirty_two;
@@ -271,7 +325,7 @@ public class Utility {
                 pictureId = R.drawable.thirty_five;
                 break;
             case "36":
-                pictureId= R.drawable.thirty_six;
+                pictureId = R.drawable.thirty_six;
                 break;
             case "37":
                 pictureId = R.drawable.thirty_seven;
