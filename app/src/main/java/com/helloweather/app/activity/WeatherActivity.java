@@ -208,8 +208,13 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         LogUtil.d("weatherTest", "queryWeatherInfo address" + address);
         String address1 = "https://api.thinkpage.cn/v3/weather/now.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c";
         LogUtil.d("weatherTest", "queryWeatherInfo address1" + address1);
-        queryFromServer(address, DAILY_WEATHER);
-        queryFromServer(address1, REAL_TIME_WEATHER);
+        if (i == 0) {
+            queryFromServer(address1, REAL_TIME_WEATHER);
+        } else if (i == 1) {
+            queryFromServer(address, DAILY_WEATHER);
+        }
+
+
     }
 
     /**
@@ -249,6 +254,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                         });
 
                     }
+                }
+                if (i == 1){
+                    String cityId = getIntent().getStringExtra("cityId");
+                    queryWeatherInfo(cityId);
                 }
             }
 
