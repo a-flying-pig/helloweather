@@ -2,6 +2,8 @@ package com.helloweather.app.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
@@ -23,6 +25,12 @@ public class Utility {
     private static final int REAL_TIME_WEATHER = 0;
 
     private static final int DAILY_WEATHER = 1;
+
+    private static final int QUERY_NOW_SUCCEED = 1;
+
+    private static final int QUERY_DAILY_SUCCEED = 2;
+
+    private static int i = 0;
 
     /**
      *  
@@ -79,7 +87,7 @@ public class Utility {
      *  @param   context（上下文，环境）
      *  @param   response（服务器返回的JSON数据）
      */
-    public static void handleWeatherResponse(Context context, String response, int type) {
+    public static void handleWeatherResponse(Context context, String response, int type, Handler mHandler) {
      /*   try {
             JSONObject jsonObject = new JSONObject(response);
             LogUtil.d("weatherTest", "jsonObject " + jsonObject);
@@ -129,6 +137,10 @@ public class Utility {
                 String nowTemp = resultInfo.now.temperature;
                 // 存储实时信息
                 saveNowWeatherInfo(context, cityId, cityName, publishTime, nowWeatherCode, nowWeatherDesp, nowTemp);
+                Message message = new Message();
+                message.what = QUERY_NOW_SUCCEED;
+                mHandler.sendMessage(message);
+                LogUtil.d("handlertest", "QUERY_NOW_SUCCEED send msg executed");
             }
         } else if (type == DAILY_WEATHER) { // 几天的天气信息数据处理
             DailyWeatherInfo dailyWeatherInfo = gson.fromJson(response, DailyWeatherInfo.class);
@@ -168,6 +180,10 @@ public class Utility {
                     order = "third";
                     // 存储第三天的天气信息
                     saveDailyWeatherInfo(context, thirdDate, thirdDayDesp, thirdDayCode, thirdNightDesp, thirdNightCode, thirdTemp1, thirdTemp2, order);
+                    Message message = new Message();
+                    message.what = QUERY_DAILY_SUCCEED;
+                    mHandler.sendMessage(message);
+                    LogUtil.d("handlertest", "QUERY_DAILY_SUCCEED send msg executed");
                 }
             }
         }

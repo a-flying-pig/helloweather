@@ -32,7 +32,9 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private static final int GET_INFO_FAIL = 0;
 
-    private static final int GET_INFO_SUCCESS = 1;
+    private static final int QUERY_NOW_SUCCEED = 1;
+
+    private static final int QUERY_DAILY_SUCCEED = 2;
 
     private static final int REAL_TIME_WEATHER = 0;
 
@@ -91,21 +93,41 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private TextView thirdTemp2;
 
     /**
-     * 完成了几次天气信息查询
+     * 是否完成实时天气或者几天天气的信息查询
      */
-    private int i = 0;
+    private boolean isQueryNowSucceed = false;
+    private boolean isQueryDailySucceed = false;
 
-    private boolean isQueryFromServerFinish = true;
-
-    /*Handler mHandler = new Handler() {
+    Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
+
             if (msg.what == GET_INFO_FAIL) {
                 publishTimeText.setText(R.string.sync_failure);
                 Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
             }
+            if (msg.what == QUERY_NOW_SUCCEED) {
+                isQueryNowSucceed =true;
+                LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
+                if (isQueryNowSucceed && isQueryDailySucceed) {
+                    showWeather();
+                    LogUtil.d("handlerr", "showWeather executed ");
+                    isQueryNowSucceed = false;
+                    isQueryDailySucceed = false;
+                }
+            }
+            if (msg.what == QUERY_DAILY_SUCCEED) {
+                isQueryDailySucceed = true;
+                LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
+                if (isQueryNowSucceed && isQueryDailySucceed) {
+                    showWeather();
+                    LogUtil.d("handlerr", "showWeather executed ");
+                    isQueryNowSucceed = false;
+                    isQueryDailySucceed = false;
+                }
+            }
         }
-    };*/
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,14 +171,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         String cityId = getIntent().getStringExtra("cityId");
         if (!TextUtils.isEmpty(cityId)) {
             // 有城市代号时就去查询天气
-//            weatherInfoLayout.setVisibility(View.INVISIBLE);
+            weatherInfoLayout.setVisibility(View.INVISIBLE);
             cityNameText.setVisibility(View.INVISIBLE);
             // 将存储的城市Id改为从ChooseActivity传过来的Id，
             // 避免在服务自动更新的时候将前面的城市Id用于更新
             SharedPreferences.Editor editor =  PreferenceManager.getDefaultSharedPreferences(this).edit();
             editor.putString("city_id", cityId);
             editor.apply();
-            queryWeatherInfo(cityId);
+            queryWeatherInfo(cityId, mHandler);
         /*    // 启动定时更新服务
             Intent serviceIntent = new Intent(WeatherActivity.this, AutoUpdateService.class);
             startService(serviceIntent);*/
@@ -199,12 +221,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                     String cityId = prefs.getString("city_id", "");
                     if (!TextUtils.isEmpty(cityId)) {
-                        queryWeatherInfo(cityId);
+                        queryWeatherInfo(cityId, mHandler);
                     }
                     break;
                 }
-            default:
-                break;
         }
     }
 
@@ -214,26 +234,15 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      * @brief 查询天气代号所对应的天气（简述）
      *  @param   weatherCode（天气代号）
      */
-    public void queryWeatherInfo(String cityId) {
-        i = 0; // 每次查询时都要把i的值赋为0，避免多次查询，i的值无限增加
-        LogUtil.d("queryWeather", "queryWeatherInfo start i =  " + i);
+
+    public void queryWeatherInfo(String cityId, Handler mHandler) {
         publishTimeText.setText(R.string.synchronizing);
         String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c&start=0&days=3";
         LogUtil.d("weatherTest", "queryWeatherInfo address" + address);
         String address1 = "https://api.thinkpage.cn/v3/weather/now.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c";
         LogUtil.d("weatherTest", "queryWeatherInfo address1" + address1);
-        boolean queryNow = queryFromServer(address1, REAL_TIME_WEATHER);
-        LogUtil.d("queryND", "queryNow executed" + queryNow);
-        boolean queryDaily = queryFromServer(address, DAILY_WEATHER);
-        LogUtil.d("queryND", "queryDaily executed" + queryDaily);
-        if (queryNow && queryDaily) {
-            LogUtil.d("queryND", "queryWeatherInfo executed" + queryDaily);
-            showWeather();
-            isQueryFromServerFinish = false;
-        } else {
-            publishTimeText.setText(R.string.sync_failure);
-            Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
-        }
+        queryFromServer(address1, REAL_TIME_WEATHER, mHandler);
+        queryFromServer(address, DAILY_WEATHER, mHandler);
     }
 
     /**
@@ -243,24 +252,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      *  @param   address（传入的地址）
      *  @param   type（查询类型）
      */
-    private  boolean queryFromServer(final String address, final int type) {
-        final Handler mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case GET_INFO_FAIL:
-                        isQueryFromServerFinish = false;
-                        break;
-                    case GET_INFO_SUCCESS:
-                        isQueryFromServerFinish = true;
+    private void queryFromServer(final String address, final int type, final Handler mHandler) {
 
-                }
-               /* if (msg.what == GET_INFO_FAIL) {
-                    publishTimeText.setText(R.string.sync_failure);
-                    Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
-                }*/
-            }
-        };
         HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(final String response) {
@@ -269,29 +262,10 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     Message message = new Message();
                     message.what = GET_INFO_FAIL;
                     mHandler.sendMessage(message);
-                    // 查询失败，重新归0
-                    i = 0;
                 } else {
-                    // 成功查询一次加1
-                        i++;
-
                     // 处理服务器返回的天气信息
-                    LogUtil.d("queryWeather", "queryFromServer i = " + i + " handleWeatherResponse start");
-                    Utility.handleWeatherResponse(WeatherActivity.this, response, type);
-                    Message message = new Message();
-                    message.what = GET_INFO_SUCCESS;
-                    mHandler.sendMessage(message);
-               /*     // 如果完成了两次的天气信息的查询，则显示天气信息
-                    if (i == 2) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                LogUtil.d("queryWeather", "queryFromServer i = " + i + " showWeather start");
-                                showWeather();
-                            }
-                        });
-
-                    }*/
+                    LogUtil.d("weatherTest", "queryFromServer  handleWeatherResponse START");
+                    Utility.handleWeatherResponse(WeatherActivity.this, response, type, mHandler);
                 }
             }
 
@@ -305,7 +279,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 });
             }
         });
-        return isQueryFromServerFinish;
     }
 
     /**
@@ -375,7 +348,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
             String cityId = prfs.getString("city_id", "");
             if (!TextUtils.isEmpty(cityId)) {
-                queryWeatherInfo(cityId);
+                queryWeatherInfo(cityId, mHandler);
             }
         }
     }
