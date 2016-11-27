@@ -3,7 +3,6 @@ package com.helloweather.app.activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,13 +19,12 @@ import android.widget.Toast;
 
 import com.helloweather.app.R;
 import com.helloweather.app.service.AutoUpdateService;
-import com.helloweather.app.util.HttpCallbackListener;
-import com.helloweather.app.util.HttpUtil;
 import com.helloweather.app.util.LogUtil;
-import com.helloweather.app.util.MyApplication;
+import com.helloweather.app.util.NoDoubleClickUtil;
+import com.helloweather.app.util.QueryUtility;
 import com.helloweather.app.util.Utility;
 
-public class WeatherActivity extends AppCompatActivity implements View.OnClickListener {
+public class WeatherActivity extends AppCompatActivity implements View.OnClickListener{
 
     private RelativeLayout weatherInfoLayout;
 
@@ -36,9 +34,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private static final int QUERY_DAILY_SUCCEED = 2;
 
-    private static final int REAL_TIME_WEATHER = 0;
-
-    private static final int DAILY_WEATHER = 1;
+    private static final int SYNCHRONIZING = 3;
 
     private MyUiReceiver myUiReceiver;
 
@@ -102,29 +98,36 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         @Override
         public void handleMessage(Message msg) {
 
-            if (msg.what == GET_INFO_FAIL) {
-                publishTimeText.setText(R.string.sync_failure);
-                Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
-            }
-            if (msg.what == QUERY_NOW_SUCCEED) {
-                isQueryNowSucceed =true;
-                LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
-                if (isQueryNowSucceed && isQueryDailySucceed) {
-                    showWeather();
-                    LogUtil.d("handlerr", "showWeather executed ");
-                    isQueryNowSucceed = false;
-                    isQueryDailySucceed = false;
-                }
-            }
-            if (msg.what == QUERY_DAILY_SUCCEED) {
-                isQueryDailySucceed = true;
-                LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
-                if (isQueryNowSucceed && isQueryDailySucceed) {
-                    showWeather();
-                    LogUtil.d("handlerr", "showWeather executed ");
-                    isQueryNowSucceed = false;
-                    isQueryDailySucceed = false;
-                }
+            switch (msg.what) {
+                case SYNCHRONIZING:
+                    publishTimeText.setText(R.string.synchronizing);
+                    break;
+                case GET_INFO_FAIL:
+                    publishTimeText.setText(R.string.sync_failure);
+                    Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
+                    break;
+                case QUERY_NOW_SUCCEED:
+                    isQueryNowSucceed = true;
+                    LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
+                    if (isQueryNowSucceed && isQueryDailySucceed) {
+                        showWeather();
+                        LogUtil.d("handlerr", "showWeather executed ");
+                        isQueryNowSucceed = false;
+                        isQueryDailySucceed = false;
+                    }
+                    break;
+                case QUERY_DAILY_SUCCEED:
+                    isQueryDailySucceed = true;
+                    LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
+                    if (isQueryNowSucceed && isQueryDailySucceed) {
+                        showWeather();
+                        LogUtil.d("handlerr", "showWeather executed ");
+                        isQueryNowSucceed = false;
+                        isQueryDailySucceed = false;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     };
@@ -171,34 +174,40 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         String cityId = getIntent().getStringExtra("cityId");
         if (!TextUtils.isEmpty(cityId)) {
             // 有城市代号时就去查询天气
-            publishTimeText.setText(R.string.synchronizing);
             weatherInfoLayout.setVisibility(View.INVISIBLE);
             cityNameText.setVisibility(View.INVISIBLE);
-            queryWeatherInfo(cityId, mHandler);
-           /* // 启动定时更新服务
+            // 将存储的城市Id改为从ChooseActivity传过来的Id，
+            // 避免在服务自动更新的时候将前面的城市Id用于更新
+            SharedPreferences.Editor editor =  PreferenceManager.getDefaultSharedPreferences(this).edit();
+            editor.putString("city_id", cityId);
+            editor.apply();
+            QueryUtility.queryWeatherInfo(cityId, mHandler);
+            // 启动定时更新服务
             Intent serviceIntent = new Intent(WeatherActivity.this, AutoUpdateService.class);
-            startService(serviceIntent);*/
+            startService(serviceIntent);
+            LogUtil.d("updateService", "weatherActivity updateService start");
         } else {
             // 没有城市Id时就直接显示本地天气
             showWeather();
-            /*//启动定时更新服务
+            //启动定时更新服务
             Intent serviceIntent = new Intent(this, AutoUpdateService.class);
-            startService(serviceIntent);*/
+            startService(serviceIntent);
+            LogUtil.d("updateService", "weatherActivity updateService start");
         }
 
         switchCity.setOnClickListener(this);
         refreshWeather.setOnClickListener(this);
-        // 注册动态广播（更新UI（天气信息））
+       /* // 注册动态广播（更新UI（天气信息））
         IntentFilter intentFiler = new IntentFilter();
         intentFiler.addAction("com.app.helloweather.MY_UI_BROADCAST");
         myUiReceiver = new MyUiReceiver();
-        registerReceiver(myUiReceiver, intentFiler);
+        registerReceiver(myUiReceiver, intentFiler);*/
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(myUiReceiver);
+//        unregisterReceiver(myUiReceiver);
     }
 
     @Override
@@ -211,66 +220,15 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 finish();
                 break;
             case R.id.refresh_weather: // 更新天气
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-                String cityId = prefs.getString("city_id", "");
-                if (!TextUtils.isEmpty(cityId)) {
-                    queryWeatherInfo(cityId, mHandler);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     *  
-     *
-     * @brief 查询天气代号所对应的天气（简述）
-     *  @param   weatherCode（天气代号）
-     */
-    public void queryWeatherInfo(String cityId, Handler mHandler) {
-        publishTimeText.setText(R.string.synchronizing);
-        String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c&start=0&days=3";
-        LogUtil.d("weatherTest", "queryWeatherInfo address" + address);
-        String address1 = "https://api.thinkpage.cn/v3/weather/now.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c";
-        LogUtil.d("weatherTest", "queryWeatherInfo address1" + address1);
-        queryFromServer(address1, REAL_TIME_WEATHER, mHandler);
-        queryFromServer(address, DAILY_WEATHER, mHandler);
-    }
-
-    /**
-     *  
-     *
-     * @brief 根据传入的地址和类型去向服务器查询天气代号或者天气信息（简述）
-     *  @param   address（传入的地址）
-     *  @param   type（查询类型）
-     */
-    private void queryFromServer(final String address, final int type, final Handler mHandler) {
-        HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
-            @Override
-            public void onFinish(final String response) {
-                if (response.contains("AP")) { // 如果返回的数据包含“AP”则说明没有正常访问，弹出获取信息失败提示
-                    LogUtil.d("ceshi", "response length" + response.length());
-                    Message message = new Message();
-                    message.what = GET_INFO_FAIL;
-                    mHandler.sendMessage(message);
-                } else {
-                    // 处理服务器返回的天气信息
-                    LogUtil.d("weatherTest", "queryFromServer  handleWeatherResponse START");
-                    Utility.handleWeatherResponse(WeatherActivity.this, response, type, mHandler);
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        publishTimeText.setText(R.string.sync_failure);
+                if (!NoDoubleClickUtil.isDoubleClick()) {
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                    String cityId = prefs.getString("city_id", "");
+                    if (!TextUtils.isEmpty(cityId)) {
+                        QueryUtility.queryWeatherInfo(cityId, mHandler);
                     }
-                });
-            }
-        });
+                    break;
+                }
+        }
     }
 
     /**
@@ -282,14 +240,14 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     public void showWeather() {
         SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
         // 显示标题栏及发布日期
+        weatherInfoLayout.setVisibility(View.VISIBLE);
+        cityNameText.setVisibility(View.VISIBLE);
         cityNameText.setText(prfs.getString("city_name", ""));
+        LogUtil.d("weatherTest", "showWeather  publishTime " + prfs.getString("city_name", ""));
         String editedDate = prfs.getString("publish_time", "").substring(0, 10);
         String editedTime = prfs.getString("publish_time", "").substring(11, 16);
         String publishTime = this.getString(R.string.publish_time) + editedDate + " " + editedTime;
-        LogUtil.d("weatherTest", "showWeather  publishTime " + publishTime);
         publishTimeText.setText(publishTime);
-        weatherInfoLayout.setVisibility(View.VISIBLE);
-        cityNameText.setVisibility(View.VISIBLE);
         // 显示实时天气
         nowImagine.setImageResource(Utility.parsePictureId(prfs.getString("now_weather_code", "99"))); // 99 表示没有获得数据
         nowDesp.setText(prfs.getString("now_weather_desp", ""));
@@ -297,9 +255,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         nowTemp.setText(temperature);
         // 显示第一天的天气
         firstDate.setText(prfs.getString("first_date", ""));
-        firstDayDesp.setText(prfs.getString("first_day_desp", ""));
+        String dayDesp = this.getString(R.string.day)  + " " + prfs.getString("first_day_desp", "");
+        firstDayDesp.setText(dayDesp);
         firstDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("first_day_code", "99")));
-        firstNightDesp.setText(prfs.getString("first_night_desp", ""));
+        String nightDesp = this.getString(R.string.night) + " " + prfs.getString("first_night_desp", "");
+        firstNightDesp.setText(nightDesp);
         firstNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("first_night_code", "99")));
         String firstT1 = prfs.getString("first_temp1", "");
         firstTemp1.setText(firstT1);
@@ -307,9 +267,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         firstTemp2.setText(firstT2);
         // 显示第二天的天气
         secondDate.setText(prfs.getString("second_date", ""));
-        secondDayDesp.setText(prfs.getString("second_day_desp", ""));
+        dayDesp = this.getString(R.string.day)  + " " + prfs.getString("second_day_desp", "");
+        secondDayDesp.setText(dayDesp);
         secondDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("second_day_code", "99")));
-        secondNightDesp.setText(prfs.getString("second_night_desp", ""));
+        nightDesp = this.getString(R.string.night) + " " + prfs.getString("second_night_desp", "");
+        secondNightDesp.setText(nightDesp);
         secondNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("second_night_code", "99")));
         String secondT1 = prfs.getString("second_temp1", "");
         secondTemp1.setText(secondT1);
@@ -317,14 +279,17 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         secondTemp2.setText(secondT2);
         // 显示第三天的天气
         thirdDate.setText(prfs.getString("third_date", ""));
-        thirdDayDesp.setText(prfs.getString("third_day_desp", ""));
+        dayDesp = this.getString(R.string.day)  + " " + prfs.getString("third_day_desp", "");
+        thirdDayDesp.setText(dayDesp);
         thirdDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("third_day_code", "99")));
-        thirdNightDesp.setText(prfs.getString("third_night_desp", ""));
+        nightDesp = this.getString(R.string.night) + " " + prfs.getString("third_night_desp", "");
+        thirdNightDesp.setText(nightDesp);
         thirdNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("third_night_code", "99")));
         String thirdT1 = prfs.getString("third_temp1", "");
         thirdTemp1.setText(thirdT1);
         String thirdT2 = prfs.getString("third_temp2", "") + getString(R.string.degree);
         thirdTemp2.setText(thirdT2);
+        Toast.makeText(WeatherActivity.this, R.string.synchronizing_succeed, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -338,8 +303,9 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             LogUtil.d("weatherRefresh", "MyUiBroadcast start");
             SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
             String cityId = prfs.getString("city_id", "");
-            queryWeatherInfo(cityId, mHandler);
-
+            if (!TextUtils.isEmpty(cityId)) {
+//                queryWeatherInfo(cityId, mHandler);
+            }
         }
     }
 }

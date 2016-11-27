@@ -166,8 +166,7 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
      *  
      *
      * @brief 根据输入的数据（拼音，中文，等）从服务器上查询城市数据（简述）
-     *  @param   code（省或市或县代号）
-     *  @param   type（省或市或县）
+     *  @param   queryCity（查询的城市名）
      */
     private void queryFromServer(final String queryCity) {
         String address;

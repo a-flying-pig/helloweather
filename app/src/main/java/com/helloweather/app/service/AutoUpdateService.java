@@ -4,10 +4,21 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 
 import com.helloweather.app.receiver.AlarmReceiver;
+import com.helloweather.app.util.LogUtil;
+import com.helloweather.app.util.MyApplication;
+import com.helloweather.app.util.QueryUtility;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author HuaZhu
@@ -16,6 +27,8 @@ import com.helloweather.app.receiver.AlarmReceiver;
  */
 public class AutoUpdateService extends Service {
 
+    private static final int QUERY_DAILY_SUCCEED = 2;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -23,16 +36,30 @@ public class AutoUpdateService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        LogUtil.d("updateService", "onStartCommand execute");
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // 发送广播，更新天气
-                Intent intent1 = new Intent("com.app.helloweather.MY_UI_BROADCAST");
-                sendBroadcast(intent1);
+                Looper.prepare();
+                Handler mHandler = new Handler(Looper.myLooper());
+                // 更新天气
+                SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(MyApplication.getContext());
+                String cityId = prfs.getString("city_id", "");
+                QueryUtility.queryWeatherInfo(cityId, new Handler(){
+                    @Override
+                    public void handleMessage(Message msg) {
+                        if (msg.what == QUERY_DAILY_SUCCEED) {
+                            LogUtil.d("ttttt", "AutoUpdateService QUERY_DAILY_SUCCEED");
+                        }
+                    }
+                });
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                LogUtil.d("ttttt", "sendBroadcast(MyUiBroadcast) executed" + df.format(new Date()));
+                Looper.loop();
             }
         }).start();
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        int aMinute = 1000 * 60 * 10;
+        int aMinute = 10*60*1000;
         long triggerAtTime = SystemClock.elapsedRealtime() + aMinute;
         Intent intent1 = new Intent(this, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent1, 0);

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.helloweather.app.service.AutoUpdateService;
+import com.helloweather.app.util.LogUtil;
 
 /**
  * @author HuaZhu
@@ -16,5 +17,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Intent intent1 = new Intent(context, AutoUpdateService.class);
         context.startService(intent1);
+        LogUtil.d("updateService", "AlarmReceiver start and startService");
     }
 }

@@ -1,5 +1,7 @@
 package com.helloweather.app.util;
 
+import android.os.Handler;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,6 +14,13 @@ import java.net.URL;
  * @brief 服务器交互类，从服务器请求数据
  */
 public class HttpUtil {
+
+    static Handler sHandler;
+
+    public HttpUtil(Handler handler) {
+        sHandler = handler;
+    }
+
     public static void sendHttpRequest(final String address, final HttpCallbackListener listener) {
         new Thread(new Runnable() {
             @Override
@@ -34,10 +43,8 @@ public class HttpUtil {
                     InputStream in = null;
                     if (status == 200) { // 如果是200(访问成功)，获取正常的输入流
                         in = connection.getInputStream();
-                        LogUtil.d("ceshi", "in " + in.toString());
                     } else { // 如果不是200，比如说经常出现的403（拒绝访问），则获取错误流
                         in = connection.getErrorStream();
-                        LogUtil.d("ceshi", "in " + in.toString());
                     }
                     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                     StringBuilder response = new StringBuilder();
@@ -51,7 +58,6 @@ public class HttpUtil {
                         LogUtil.d("ceshi", "response" + response.toString());
                         listener.onFinish(response.toString());
                     }
-                    LogUtil.d("ceshi", "response.toString()" + response.toString());
                 } catch (Exception e) {
                     if (listener != null) {
                         // 回调onError（）方法
