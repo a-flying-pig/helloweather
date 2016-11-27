@@ -108,20 +108,20 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             }
             if (msg.what == QUERY_NOW_SUCCEED) {
                 isQueryNowSucceed =true;
-                LogUtil.d("handlertest", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
+                LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
                 if (isQueryNowSucceed && isQueryDailySucceed) {
                     showWeather();
-                    LogUtil.d("handlertest", "showWeather executed ");
+                    LogUtil.d("handlerr", "showWeather executed ");
                     isQueryNowSucceed = false;
                     isQueryDailySucceed = false;
                 }
             }
             if (msg.what == QUERY_DAILY_SUCCEED) {
                 isQueryDailySucceed = true;
-                LogUtil.d("handlertest", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
+                LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
                 if (isQueryNowSucceed && isQueryDailySucceed) {
                     showWeather();
-                    LogUtil.d("handlertest", "showWeather executed ");
+                    LogUtil.d("handlerr", "showWeather executed ");
                     isQueryNowSucceed = false;
                     isQueryDailySucceed = false;
                 }
