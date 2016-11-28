@@ -137,6 +137,7 @@ public class Utility {
                 String nowTemp = resultInfo.now.temperature;
                 // 存储实时信息
                 saveNowWeatherInfo(context, cityId, cityName, publishTime, nowWeatherCode, nowWeatherDesp, nowTemp);
+                LogUtil.d("ttttt", "saveNowWeatherInfo " + publishTime);
                 Message message = new Message();
                 message.what = QUERY_NOW_SUCCEED;
                 mHandler.sendMessage(message);

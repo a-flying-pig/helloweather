@@ -27,6 +27,7 @@ import java.util.Date;
  */
 public class AutoUpdateService extends Service {
 
+    private static final int QUERY_NOW_SUCCEED = 1;
     private static final int QUERY_DAILY_SUCCEED = 2;
 
     @Override
@@ -48,13 +49,16 @@ public class AutoUpdateService extends Service {
                 QueryUtility.queryWeatherInfo(cityId, new Handler(){
                     @Override
                     public void handleMessage(Message msg) {
+                        if (msg.what == QUERY_NOW_SUCCEED) {
+                            LogUtil.d("ttttt", "AutoUpdateService QUERY_NOW_SUCCEED");
+                        }
                         if (msg.what == QUERY_DAILY_SUCCEED) {
                             LogUtil.d("ttttt", "AutoUpdateService QUERY_DAILY_SUCCEED");
                         }
                     }
                 });
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-                LogUtil.d("ttttt", "sendBroadcast(MyUiBroadcast) executed" + df.format(new Date()));
+                LogUtil.d("ttttt", "AutoUpdateService start" + df.format(new Date()));
                 Looper.loop();
             }
         }).start();
