@@ -42,8 +42,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private static final int SYNCHRONIZING = 3;
 
-    private MyUiReceiver myUiReceiver;
-
     /**
      * 用于显示城市名称
      */

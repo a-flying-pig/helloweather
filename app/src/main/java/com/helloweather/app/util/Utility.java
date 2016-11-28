@@ -141,7 +141,7 @@ public class Utility {
                 Message message = new Message();
                 message.what = QUERY_NOW_SUCCEED;
                 mHandler.sendMessage(message);
-                LogUtil.d("handlertest", "QUERY_NOW_SUCCEED send msg executed");
+                LogUtil.d("handlerr", "QUERY_NOW_SUCCEED send msg executed");
             }
         } else if (type == DAILY_WEATHER) { // 几天的天气信息数据处理
             DailyWeatherInfo dailyWeatherInfo = gson.fromJson(response, DailyWeatherInfo.class);
@@ -184,7 +184,7 @@ public class Utility {
                     Message message = new Message();
                     message.what = QUERY_DAILY_SUCCEED;
                     mHandler.sendMessage(message);
-                    LogUtil.d("handlertest", "QUERY_DAILY_SUCCEED send msg executed");
+                    LogUtil.d("handlerr", "QUERY_DAILY_SUCCEED send msg executed");
                 }
             }
         }
