@@ -9,7 +9,7 @@ import android.os.Message;
  */
 public class QueryUtility {
 
-    private static final int SYNCHRONIZING = 3;
+    private static final int NETWORK_UNAVAILABLE = 3;
 
     private static final int GET_INFO_FAIL = 0;
 
@@ -25,17 +25,20 @@ public class QueryUtility {
      */
 
     public static void queryWeatherInfo(String cityId, Handler mHandler) {
-        Message message = new Message();
-        message.what = SYNCHRONIZING;
-        mHandler.sendMessage(message);
-        String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c&start=0&days=3";
-        LogUtil.d("weatherTest", "queryWeatherInfo address" + address);
-        String address1 = "https://api.thinkpage.cn/v3/weather/now.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c";
-        LogUtil.d("weatherTest", "queryWeatherInfo address1" + address1);
-        queryFromServer(address, DAILY_WEATHER, mHandler);
-        LogUtil.d("handlerr", "queryFromServer(address, DAILY_WEATHER executed ");
-        queryFromServer(address1, REAL_TIME_WEATHER, mHandler);
-        LogUtil.d("handlerr", "queryFromServer(address1, REAL_TIME_WEATHER executed ");
+        if (NetworkState.IsNetworkAvailable()) {
+            String address = "https://api.thinkpage.cn/v3/weather/daily.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c&start=0&days=3";
+            LogUtil.d("weatherTest", "queryWeatherInfo address" + address);
+            String address1 = "https://api.thinkpage.cn/v3/weather/now.json?key=" + MyApplication.getMyKey() + "&location=" + cityId + "&language=zh-Hans&unit=c";
+            LogUtil.d("weatherTest", "queryWeatherInfo address1" + address1);
+            queryFromServer(address, DAILY_WEATHER, mHandler);
+            LogUtil.d("handlerr", "queryFromServer(address, DAILY_WEATHER executed ");
+            queryFromServer(address1, REAL_TIME_WEATHER, mHandler);
+            LogUtil.d("handlerr", "queryFromServer(address1, REAL_TIME_WEATHER executed ");
+        } else {
+            Message message = new Message();
+            message.what = NETWORK_UNAVAILABLE;
+            mHandler.sendMessage(message);
+        }
     }
 
     /**

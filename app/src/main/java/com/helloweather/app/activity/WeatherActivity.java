@@ -1,9 +1,14 @@
 package com.helloweather.app.activity;
 
-import android.content.BroadcastReceiver;
+import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,7 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -29,10 +34,13 @@ import com.helloweather.app.util.QueryUtility;
 import com.helloweather.app.util.Utility;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class WeatherActivity extends AppCompatActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener{
 
     private RelativeLayout weatherInfoLayout;
+
+    private RelativeLayout getInfoFailedLayout;
 
     private static final int GET_INFO_FAIL = 0;
 
@@ -40,57 +48,12 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
     private static final int QUERY_DAILY_SUCCEED = 2;
 
-    private static final int SYNCHRONIZING = 3;
+    private static final int NETWORK_UNAVAILABLE = 3;
 
     /**
      * 用于显示城市名称
      */
     private TextView cityNameText;
-
-    /**
-     * 用于显示发布时间
-     */
-    private TextView publishTimeText;
-
-    /**
-     * 用于显示实时天气变量
-     */
-    private ImageView nowImagine;
-    private TextView nowDesp;
-    private TextView nowTemp;
-
-    /**
-     * 用于显示第一天天气变量
-     */
-    private TextView firstDate;
-    private TextView firstDayDesp;
-    private ImageView firstDayImagine;
-    private TextView firstNightDesp;
-    private ImageView firstNightImagine;
-    private TextView firstTemp1;
-    private TextView firstTemp2;
-
-    /**
-     * 用于显示第二天天气变量
-     */
-    private TextView secondDate;
-    private TextView secondDayDesp;
-    private ImageView secondDayImagine;
-    private TextView secondNightDesp;
-    private ImageView secondNightImagine;
-    private TextView secondTemp1;
-    private TextView secondTemp2;
-
-    /**
-     * 用于显示第三天天气变量
-     */
-    private TextView thirdDate;
-    private TextView thirdDayDesp;
-    private ImageView thirdDayImagine;
-    private TextView thirdNightDesp;
-    private ImageView thirdNightImagine;
-    private TextView thirdTemp1;
-    private TextView thirdTemp2;
 
     /**
      * 是否完成实时天气或者几天天气的信息查询
@@ -102,24 +65,33 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private ArrayList<WeatherInfo> weatherInfos = new ArrayList<>();
     private WeatherInfoAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private ProgressDialog progressDialog;
 
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
 
             switch (msg.what) {
-                case SYNCHRONIZING:
-//                    publishTimeText.setText(R.string.synchronizing);
+                case NETWORK_UNAVAILABLE:
+                    weatherInfoLayout.setVisibility(View.INVISIBLE);
+                    getInfoFailedLayout.setVisibility(View.VISIBLE);
+                    closeProgressDialog();
+                    swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                    Toast.makeText(WeatherActivity.this, R.string.connect_network, Toast.LENGTH_SHORT).show();
                     break;
                 case GET_INFO_FAIL:
-//                    publishTimeText.setText(R.string.sync_failure);
-                    Toast.makeText(WeatherActivity.this, R.string.get_infor_failed, Toast.LENGTH_SHORT).show();
+                    closeProgressDialog();
+                    swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                    weatherInfoLayout.setVisibility(View.INVISIBLE);
+                    getInfoFailedLayout.setVisibility(View.VISIBLE);
+                    Toast.makeText(WeatherActivity.this, R.string.get_info_failed, Toast.LENGTH_SHORT).show();
                     break;
                 case QUERY_NOW_SUCCEED: // 如果NOW 和DAILY都查询成功，则展示信息
                     isQueryNowSucceed = true;
                     LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
                     if (isQueryNowSucceed && isQueryDailySucceed) {
                         swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                        closeProgressDialog();
                         showWeather();
                         LogUtil.d("handlerr", "showWeather executed ");
                         isQueryNowSucceed = false;
@@ -131,6 +103,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
                     if (isQueryNowSucceed && isQueryDailySucceed) {
                         swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                        closeProgressDialog();
                         showWeather();
                         LogUtil.d("handlerr", "showWeather executed ");
                         isQueryNowSucceed = false;
@@ -156,43 +129,21 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         swipeRefreshLayout.setOnRefreshListener(this);
         // 初始化标题栏及发布日期控件
         weatherInfoLayout = (RelativeLayout) findViewById(R.id.weather_info_layout);
+        getInfoFailedLayout = (RelativeLayout) findViewById(R.id.get_info_failed_ly);
         cityNameText = (TextView) findViewById(R.id.city_name);
-        Button switchCity = (Button) findViewById(R.id.switch_city);
-        Button refreshWeather = (Button) findViewById(R.id.refresh_weather);
-       /* publishTimeText = (TextView) findViewById(R.id.publish_time_text);
-        // 初始化实时天气变量
-        nowImagine = (ImageView) findViewById(R.id.real_time_picture);
-        nowDesp = (TextView) findViewById(R.id.real_time_weather_desp);
-        nowTemp = (TextView) findViewById(R.id.real_time_tmp);
-        // 初始化第一天的天气变量
-        firstDate = (TextView) findViewById(R.id.first_date);
-        firstDayDesp = (TextView) findViewById(R.id.first_day_desp);
-        firstDayImagine = (ImageView) findViewById(R.id.first_day_imagine);
-        firstNightDesp = (TextView) findViewById(R.id.first_night_desp);
-        firstNightImagine = (ImageView) findViewById(R.id.first_night_imagine);
-        firstTemp1 = (TextView) findViewById(R.id.first_temp1);
-        firstTemp2 = (TextView) findViewById(R.id.first_temp2);
-        // 初始化第二天的天气变量
-        secondDate = (TextView) findViewById(R.id.second_date);
-        secondDayDesp = (TextView) findViewById(R.id.second_day_desp);
-        secondDayImagine = (ImageView) findViewById(R.id.second_day_imagine);
-        secondNightDesp = (TextView) findViewById(R.id.second_night_desp);
-        secondNightImagine = (ImageView) findViewById(R.id.second_night_imagine);
-        secondTemp1 = (TextView) findViewById(R.id.second_temp1);
-        secondTemp2 = (TextView) findViewById(R.id.second_temp2);
-        // 初始化第三天的天气变量
-        thirdDate = (TextView) findViewById(R.id.third_date);
-        thirdDayDesp = (TextView) findViewById(R.id.third_day_desp);
-        thirdDayImagine = (ImageView) findViewById(R.id.third_day_imagine);
-        thirdNightDesp = (TextView) findViewById(R.id.third_night_desp);
-        thirdNightImagine = (ImageView) findViewById(R.id.third_night_imagine);
-        thirdTemp1 = (TextView) findViewById(R.id.third_temp1);
-        thirdTemp2 = (TextView) findViewById(R.id.third_temp2);*/
+        ImageButton switchCity = (ImageButton) findViewById(R.id.switch_city);
+        ImageButton locationWeather = (ImageButton) findViewById(R.id.location_weather);
+        Button tryAgain = (Button) findViewById(R.id.try_again);
+        switchCity.setOnClickListener(this);
+        locationWeather.setOnClickListener(this);
+        tryAgain.setOnClickListener(this);
+
         // 从ChooseAreaActivity活动跳转过来时执行的逻辑
         String cityId = getIntent().getStringExtra("cityId");
         if (!TextUtils.isEmpty(cityId)) {
             // 有城市代号时就去查询天气
             weatherInfoLayout.setVisibility(View.INVISIBLE);
+            getInfoFailedLayout.setVisibility(View.INVISIBLE);
             cityNameText.setVisibility(View.INVISIBLE);
             // 将存储的城市Id改为从ChooseActivity传过来的Id，
             // 避免在服务自动更新的时候将前面的城市Id用于更新
@@ -212,14 +163,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             startService(serviceIntent);
             LogUtil.d("updateService", "weatherActivity updateService start");
         }
-
-        switchCity.setOnClickListener(this);
-        refreshWeather.setOnClickListener(this);
-       /* // 注册动态广播（更新UI（天气信息））
-        IntentFilter intentFiler = new IntentFilter();
-        intentFiler.addAction("com.app.helloweather.MY_UI_BROADCAST");
-        myUiReceiver = new MyUiReceiver();
-        registerReceiver(myUiReceiver, intentFiler);*/
     }
 
     @Override
@@ -241,7 +184,6 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        unregisterReceiver(myUiReceiver);
     }
 
     @Override
@@ -253,15 +195,27 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 startActivity(intent);
                 finish();
                 break;
-            case R.id.refresh_weather: // 更新天气
+            case R.id.location_weather: // 获得自动定位位置天气
                 if (!NoDoubleClickUtil.isDoubleClick()) {
+                    String longitudeLatitude = getLocation();
+                    if (!TextUtils.isEmpty(longitudeLatitude)) {
+                        showProgressDialog();
+                        QueryUtility.queryWeatherInfo(longitudeLatitude, mHandler);
+                    }
+                }
+                break;
+            case R.id.try_again: // 更新失败时，重新刷新
+                if (!NoDoubleClickUtil.isDoubleClick()) {
+                    showProgressDialog();
                     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                     String cityId = prefs.getString("city_id", "");
                     if (!TextUtils.isEmpty(cityId)) {
                         QueryUtility.queryWeatherInfo(cityId, mHandler);
                     }
-                    break;
                 }
+                break;
+            default:
+                break;
         }
     }
 
@@ -274,56 +228,12 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     public void showWeather() {
         SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
         // 显示标题栏及发布日期
+        getInfoFailedLayout.setVisibility(View.INVISIBLE);
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
         cityNameText.setText(prfs.getString("city_name", ""));
         LogUtil.d("weatherTest", "showWeather  publishTime " + prfs.getString("city_name", ""));
-     /*   String editedDate = prfs.getString("publish_time", "").substring(0, 10);
-        String editedTime = prfs.getString("publish_time", "").substring(11, 16);
-        String publishTime = this.getString(R.string.publish_time) + editedDate + " " + editedTime;
-        publishTimeText.setText(publishTime);
-        // 显示实时天气
-        nowImagine.setImageResource(Utility.parsePictureId(prfs.getString("now_weather_code", "99"))); // 99 表示没有获得数据
-        nowDesp.setText(prfs.getString("now_weather_desp", ""));
-        String temperature = prfs.getString("now_temp", "") + getString(R.string.degree);
-        nowTemp.setText(temperature);
-        // 显示第一天的天气
-        firstDate.setText(prfs.getString("first_date", ""));
-        String dayDesp = this.getString(R.string.day)  + " " + prfs.getString("first_day_desp", "");
-        firstDayDesp.setText(dayDesp);
-        firstDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("first_day_code", "99")));
-        String nightDesp = this.getString(R.string.night) + " " + prfs.getString("first_night_desp", "");
-        firstNightDesp.setText(nightDesp);
-        firstNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("first_night_code", "99")));
-        String firstT1 = prfs.getString("first_temp1", "");
-        firstTemp1.setText(firstT1);
-        String firstT2 = prfs.getString("first_temp2", "") + getString(R.string.degree);
-        firstTemp2.setText(firstT2);
-        // 显示第二天的天气
-        secondDate.setText(prfs.getString("second_date", ""));
-        dayDesp = this.getString(R.string.day)  + " " + prfs.getString("second_day_desp", "");
-        secondDayDesp.setText(dayDesp);
-        secondDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("second_day_code", "99")));
-        nightDesp = this.getString(R.string.night) + " " + prfs.getString("second_night_desp", "");
-        secondNightDesp.setText(nightDesp);
-        secondNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("second_night_code", "99")));
-        String secondT1 = prfs.getString("second_temp1", "");
-        secondTemp1.setText(secondT1);
-        String secondT2 = prfs.getString("second_temp2", "") + getString(R.string.degree);
-        secondTemp2.setText(secondT2);
-        // 显示第三天的天气
-        thirdDate.setText(prfs.getString("third_date", ""));
-        dayDesp = this.getString(R.string.day)  + " " + prfs.getString("third_day_desp", "");
-        thirdDayDesp.setText(dayDesp);
-        thirdDayImagine.setImageResource(Utility.parsePictureId(prfs.getString("third_day_code", "99")));
-        nightDesp = this.getString(R.string.night) + " " + prfs.getString("third_night_desp", "");
-        thirdNightDesp.setText(nightDesp);
-        thirdNightImagine.setImageResource(Utility.parsePictureId(prfs.getString("third_night_code", "99")));
-        String thirdT1 = prfs.getString("third_temp1", "");
-        thirdTemp1.setText(thirdT1);
-        String thirdT2 = prfs.getString("third_temp2", "") + getString(R.string.degree);
-        thirdTemp2.setText(thirdT2);
-        Toast.makeText(WeatherActivity.this, R.string.synchronizing_succeed, Toast.LENGTH_SHORT).show();*/
+        // 清除之前的天气信息
         weatherInfos.clear();
         String editedDate = prfs.getString("publish_time", "").substring(0, 10);
         String editedTime = prfs.getString("publish_time", "").substring(11, 16);
@@ -371,19 +281,61 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
+     * 获取手机位置，返回经纬度信息
+     */
+    private String getLocation() {
+        String locationInfo = null;
+        String provider = null;
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // 获取可用位置信息
+        List<String> providerList = locationManager.getProviders(true);
+        if (providerList.contains(LocationManager.GPS_PROVIDER)) {
+            provider = LocationManager.GPS_PROVIDER;
+        } else if (providerList.contains(LocationManager.NETWORK_PROVIDER)) {
+            provider = LocationManager.NETWORK_PROVIDER;
+        } else {
+            // 当没有可用的位置提供器时，弹出Toast提示用户
+            Toast.makeText(this, this.getText(R.string.no_location_provider), Toast.LENGTH_SHORT).show();
+        }
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (WeatherActivity.this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if (location != null) {
+                    locationInfo = location.getLatitude() + ":" + location.getLongitude();
+
+                }
+            }
+        } else {
+            Location location = locationManager.getLastKnownLocation(provider);
+            if (location != null) {
+                locationInfo = location.getLatitude() + ":" + location.getLongitude();
+            }
+        }
+        return locationInfo;
+    }
+
+    /**
      *  
      *
-     * @brief 接收数据更新的广播，收到从服务发送的广播，然后更新UI（天气信息）（简述）
-     */
-    public class MyUiReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            LogUtil.d("weatherRefresh", "MyUiBroadcast start");
-            SharedPreferences prfs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
-            String cityId = prfs.getString("city_id", "");
-            if (!TextUtils.isEmpty(cityId)) {
-//                queryWeatherInfo(cityId, mHandler);
+     * @brief 显示进度对话框（简述）
+        */
+        private void showProgressDialog() {
+            if (progressDialog == null) {
+                progressDialog = new ProgressDialog(this);
+                progressDialog.setMessage(getString(R.string.loading));
+                progressDialog.setCanceledOnTouchOutside(false);
             }
+            progressDialog.show();
+        }
+
+        /**
+         *  
+         *
+         * @brief 关闭进度对话框（简述）
+         */
+    private void closeProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
         }
     }
 }

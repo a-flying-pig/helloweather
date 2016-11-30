@@ -2,7 +2,7 @@ package com.helloweather.app.util;
 
 /**
  * Created by Administrator on 2016-11-22.
- * 两秒内不能重复刷新的工具类
+ * 固定几秒内不能重复刷新的工具类
  */
 public class NoDoubleClickUtil {
 

@@ -22,6 +22,8 @@ import com.helloweather.app.util.HttpCallbackListener;
 import com.helloweather.app.util.HttpUtil;
 import com.helloweather.app.util.LogUtil;
 import com.helloweather.app.util.MyApplication;
+import com.helloweather.app.util.NetworkState;
+import com.helloweather.app.util.NoDoubleClickUtil;
 import com.helloweather.app.util.Utility;
 
 import java.net.URLEncoder;
@@ -97,24 +99,31 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.query_button:
-                queryCity = queryEdit.getText().toString().replaceAll("\\s*", "");
-                if (TextUtils.isEmpty(queryCity)) {
-                    Toast.makeText(this, R.string.no_input_city, Toast.LENGTH_SHORT).show();
-                } else {
-                    try { // 将输入的数据转换成"UTF-8"类型，为了是输入的是城市时也能搜索
+                if (!NoDoubleClickUtil.isDoubleClick()) {
+                    queryCity = queryEdit.getText().toString().replaceAll("\\s*", "");
+                    if (TextUtils.isEmpty(queryCity)) {
+                        Toast.makeText(this, R.string.no_input_city, Toast.LENGTH_SHORT).show();
+                    } else {
+                        try { // 将输入的数据转换成"UTF-8"类型，为了是输入的是城市时也能搜索
 //                        queryCity = "%E6%88%90%E9%83%BD";
-                        queryCity = URLEncoder.encode(queryCity, "UTF-8");
+                            queryCity = URLEncoder.encode(queryCity, "UTF-8");
 //                        queryCity = URLDecoder.decode(queryCity, "UTF-8");
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        queryFromServer(queryCity);
                     }
-                    queryFromServer(queryCity);
                 }
                 break;
             case R.id.delete_history_record:
-                helloWeatherDB.deleteHistoryCities();
-                // 重新查询历史城市，刷新ListView
-                queryHistoryCities();
+                if (!NoDoubleClickUtil.isDoubleClick()) {
+                    helloWeatherDB.deleteHistoryCities();
+                    // 重新查询历史城市，刷新ListView
+                    queryHistoryCities();
+                }
+                break;
+            default:
+                break;
         }
     }
 
@@ -172,36 +181,40 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
         String address;
         address = "https://api.thinkpage.cn/v3/location/search.json?key=" + MyApplication.getMyKey() + "&q=" + queryCity + "&limit=10";
         LogUtil.d("ceshi", "showProgressDialog" + address);
-        showProgressDialog();
-        HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
-            @Override
-            public void onFinish(String response) {
-                boolean result = false;
-                result = Utility.handleCityResponse(helloWeatherDB, response);
-                if (result) {
-                    // 通过runOnUiThread()方法回到主线程处理逻辑
+        if (NetworkState.IsNetworkAvailable()) {
+            showProgressDialog();
+            HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
+                @Override
+                public void onFinish(String response) {
+                    boolean result = false;
+                    result = Utility.handleCityResponse(helloWeatherDB, response);
+                    if (result) {
+                        // 通过runOnUiThread()方法回到主线程处理逻辑
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                closeProgressDialog();
+                                loadSearchCities();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    // 通过runOnUiThread（）方法回到主线程处理逻辑
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             closeProgressDialog();
-                            loadSearchCities();
+                            Toast.makeText(ChooseAreaActivity.this, R.string.load_failure, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                // 通过runOnUiThread（）方法回到主线程处理逻辑
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeProgressDialog();
-                        Toast.makeText(ChooseAreaActivity.this, R.string.load_failure, Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
+            });
+        } else {
+            Toast.makeText(ChooseAreaActivity.this, R.string.connect_network, Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

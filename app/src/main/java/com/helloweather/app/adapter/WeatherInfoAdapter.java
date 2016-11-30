@@ -29,7 +29,12 @@ public class WeatherInfoAdapter extends ArrayAdapter<WeatherInfo> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         WeatherInfo weatherInfo = getItem(position);
-        View view = LayoutInflater.from(getContext()).inflate(resourceId, null);
+        View view;
+        if (convertView == null) {
+            view = LayoutInflater.from(getContext()).inflate(resourceId, null);
+        } else {
+            view = convertView;
+        }
 
         // 初始化发布时间
         TextView publishTimeText = (TextView) view.findViewById(R.id.publish_time_text);

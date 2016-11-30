@@ -16,12 +16,15 @@
     <string name="delete_history_record">清除历史记录</string>
     <string name="degree">℃</string>
     <string name="to">~</string>
-    <string name="get_infor_failed">获取天气信息失败</string>
+    <string name="get_info_failed">获取天气信息失败</string>
     <string name="have_nice_day">Have a nice day !</string>
     <string name="real_time_weather">实时天气：</string>
     <string name="synchronizing_succeed">更新成功</string>
     <string name="day">白天</string>
     <string name="night">夜间</string>
+    <string name="no_location_provider">不能获得位置信息，请打开GPS或者网络连接</string>
+    <string name="get_info_failed_try">摸大腿重试</string>
+    <string name="connect_network">无网络连接，请开启网络后重试</string>
 
 
 </resources>
