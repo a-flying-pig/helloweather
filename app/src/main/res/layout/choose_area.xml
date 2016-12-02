@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/background_choose_city">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,14 +17,14 @@
             android:layout_marginStart="10dp"
             android:text="@string/choose_city"
             android:textSize="30sp"
-            android:textColor="#27A5F9"/>
+            android:textColor="#fff"/>
     </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="50dp"
-        android:background="#484E61"
+        android:background="#808080"
         >
 
         <EditText
@@ -45,7 +46,7 @@
             android:layout_marginStart="265dp"
             android:textColor="#fff"
             android:textSize="24sp"
-            android:background="#27A5F9"/>
+            android:background="@drawable/selector_button_search_city"/>
 
     </RelativeLayout>
 
@@ -63,7 +64,7 @@
         android:layout_centerHorizontal="true"
         android:layout_width="100dp"
         android:layout_height="20dp"
-        android:background="#696969"
+        android:background="@drawable/selector_delete_history"
         android:text="@string/delete_history_record" />
 
 </RelativeLayout>

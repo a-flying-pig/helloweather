@@ -1,7 +1,7 @@
 package com.helloweather.app.activity;
 
 import android.Manifest;
-import android.app.ProgressDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,6 +19,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -28,6 +29,7 @@ import com.helloweather.app.R;
 import com.helloweather.app.adapter.WeatherInfoAdapter;
 import com.helloweather.app.model.WeatherInfo;
 import com.helloweather.app.service.AutoUpdateService;
+import com.helloweather.app.util.CustomProgressDialog;
 import com.helloweather.app.util.LogUtil;
 import com.helloweather.app.util.NoDoubleClickUtil;
 import com.helloweather.app.util.QueryUtility;
@@ -65,7 +67,11 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
     private ArrayList<WeatherInfo> weatherInfos = new ArrayList<>();
     private WeatherInfoAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private ProgressDialog progressDialog;
+    private Dialog mDialog;
+    /**
+     * 刷新失败时的背景
+     */
+    private ImageView getInfoFailedBg;
 
     Handler mHandler = new Handler() {
         @Override
@@ -73,15 +79,17 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
 
             switch (msg.what) {
                 case NETWORK_UNAVAILABLE:
+                    swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                    getInfoFailedBg.setImageResource(R.drawable.fun_background_1_400x530);
+                    closeProgressDialog();
                     weatherInfoLayout.setVisibility(View.INVISIBLE);
                     getInfoFailedLayout.setVisibility(View.VISIBLE);
-                    closeProgressDialog();
-                    swipeRefreshLayout.setRefreshing(false); // 非正在刷新
                     Toast.makeText(WeatherActivity.this, R.string.connect_network, Toast.LENGTH_SHORT).show();
                     break;
                 case GET_INFO_FAIL:
-                    closeProgressDialog();
                     swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                    getInfoFailedBg.setImageResource(R.drawable.fun_background_1_400x530);
+                    closeProgressDialog();
                     weatherInfoLayout.setVisibility(View.INVISIBLE);
                     getInfoFailedLayout.setVisibility(View.VISIBLE);
                     Toast.makeText(WeatherActivity.this, R.string.get_info_failed, Toast.LENGTH_SHORT).show();
@@ -91,6 +99,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
                     if (isQueryNowSucceed && isQueryDailySucceed) {
                         swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                        getInfoFailedBg.setImageResource(R.drawable.fun_background_1_400x530);
                         closeProgressDialog();
                         showWeather();
                         LogUtil.d("handlerr", "showWeather executed ");
@@ -103,6 +112,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                     LogUtil.d("handlerr", "if QUERY_NOW_SUCCEED " + isQueryNowSucceed + "if QUERY_DAILY_SUCCEED " + isQueryDailySucceed);
                     if (isQueryNowSucceed && isQueryDailySucceed) {
                         swipeRefreshLayout.setRefreshing(false); // 非正在刷新
+                        getInfoFailedBg.setImageResource(R.drawable.fun_background_1_400x530);
                         closeProgressDialog();
                         showWeather();
                         LogUtil.d("handlerr", "showWeather executed ");
@@ -134,6 +144,8 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         ImageButton switchCity = (ImageButton) findViewById(R.id.switch_city);
         ImageButton locationWeather = (ImageButton) findViewById(R.id.location_weather);
         Button tryAgain = (Button) findViewById(R.id.try_again);
+        getInfoFailedBg = (ImageView) findViewById(R.id.get_info_failed_background);
+        getInfoFailedBg.setImageResource(R.drawable.fun_background_1_400x530);
         switchCity.setOnClickListener(this);
         locationWeather.setOnClickListener(this);
         tryAgain.setOnClickListener(this);
@@ -197,21 +209,32 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.location_weather: // 获得自动定位位置天气
                 if (!NoDoubleClickUtil.isDoubleClick()) {
-                    String longitudeLatitude = getLocation();
-                    if (!TextUtils.isEmpty(longitudeLatitude)) {
-                        showProgressDialog();
-                        QueryUtility.queryWeatherInfo(longitudeLatitude, mHandler);
-                    }
+                    showProgressDialog();
+                    new Handler().postDelayed(new Runnable() { // 延迟半秒执行，方便看到图片的效果
+                        @Override
+                        public void run() {
+                            String longitudeLatitude = getLocation();
+                            if (!TextUtils.isEmpty(longitudeLatitude)) {
+                                QueryUtility.queryWeatherInfo(longitudeLatitude, mHandler);
+                            }
+                        }
+                    }, 500);
                 }
                 break;
             case R.id.try_again: // 更新失败时，重新刷新
                 if (!NoDoubleClickUtil.isDoubleClick()) {
                     showProgressDialog();
-                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-                    String cityId = prefs.getString("city_id", "");
-                    if (!TextUtils.isEmpty(cityId)) {
-                        QueryUtility.queryWeatherInfo(cityId, mHandler);
-                    }
+                    getInfoFailedBg.setImageResource(R.drawable.fun_background_2_400x530);
+                    new Handler().postDelayed(new Runnable() { // 延迟半秒执行，方便看到图片的效果
+                        @Override
+                        public void run() {
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                            String cityId = prefs.getString("city_id", "");
+                            if (!TextUtils.isEmpty(cityId)) {
+                                QueryUtility.queryWeatherInfo(cityId, mHandler);
+                            }
+                        }
+                    }, 500);
                 }
                 break;
             default:
@@ -318,24 +341,20 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
      *  
      *
      * @brief 显示进度对话框（简述）
-        */
-        private void showProgressDialog() {
-            if (progressDialog == null) {
-                progressDialog = new ProgressDialog(this);
-                progressDialog.setMessage(getString(R.string.loading));
-                progressDialog.setCanceledOnTouchOutside(false);
-            }
-            progressDialog.show();
-        }
+     */
+    private void showProgressDialog() {
+        mDialog = CustomProgressDialog.getCustomProgressDialog(this, getString(R.string.loading));
+        mDialog.show();
+    }
 
-        /**
-         *  
-         *
-         * @brief 关闭进度对话框（简述）
-         */
+    /**
+     *  
+     *
+     * @brief 关闭进度对话框（简述）
+     */
     private void closeProgressDialog() {
-        if (progressDialog != null) {
-            progressDialog.dismiss();
+        if (mDialog != null) {
+            mDialog.dismiss();
         }
     }
 }

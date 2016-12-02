@@ -1,6 +1,6 @@
 package com.helloweather.app.activity;
 
-import android.app.ProgressDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,6 +18,7 @@ import com.helloweather.app.R;
 import com.helloweather.app.adapter.CityAdapter;
 import com.helloweather.app.db.HelloWeatherDB;
 import com.helloweather.app.model.City;
+import com.helloweather.app.util.CustomProgressDialog;
 import com.helloweather.app.util.HttpCallbackListener;
 import com.helloweather.app.util.HttpUtil;
 import com.helloweather.app.util.LogUtil;
@@ -37,7 +38,7 @@ import java.util.List;
  */
 public class ChooseAreaActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private ProgressDialog progressDialog;
+    private Dialog mDialog;
     private EditText queryEdit;
     private Button queryButton;
     private Button deleteHistory;
@@ -223,12 +224,8 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
      * @brief 显示进度对话框（简述）
      */
     private void showProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog(this);
-            progressDialog.setMessage(getString(R.string.loading));
-            progressDialog.setCanceledOnTouchOutside(false);
-        }
-        progressDialog.show();
+        mDialog = CustomProgressDialog.getCustomProgressDialog(this, getString(R.string.loading));
+        mDialog.show();
     }
 
     /**
@@ -237,8 +234,8 @@ public class ChooseAreaActivity extends AppCompatActivity implements View.OnClic
      * @brief 关闭进度对话框（简述）
      */
     private void closeProgressDialog() {
-        if (progressDialog != null) {
-            progressDialog.dismiss();
+        if (mDialog != null) {
+           mDialog.dismiss();
         }
     }
 

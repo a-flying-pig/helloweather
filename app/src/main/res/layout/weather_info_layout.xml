@@ -10,7 +10,6 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
-            android:background="#27A5F9"
             android:textColor="#FFF"
             android:textSize="18sp" />
 
@@ -21,7 +20,6 @@
             android:layout_below="@+id/publish_time_text"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="25dp"
-            android:background="#27A5F9"
             android:text="@string/have_nice_day"
             android:textColor="#FFF"
             android:textSize="36sp" />
@@ -32,8 +30,7 @@
             android:layout_height="170dp"
             android:layout_alignParentStart="true"
             android:layout_below="@+id/publish_time_text"
-            android:layout_marginTop="90dp"
-            android:background="#27A5F9">
+            android:layout_marginTop="90dp">
 
 
             <ImageView
@@ -90,7 +87,6 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="#27A5F9"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -199,7 +195,6 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="#27A5F9"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -310,7 +305,6 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="#27A5F9"
                 android:orientation="vertical">
 
                 <LinearLayout

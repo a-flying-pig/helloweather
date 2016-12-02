@@ -3,7 +3,7 @@
     <string name="chinese">中国</string>
     <string name="synchronizing">更新中&#8230;</string>
     <string name="sync_failure">更新失败</string>
-    <string name="loading">正在加载&#8230;</string>
+    <string name="loading">数据加载中&#8230;</string>
     <string name="load_failure">加载失败</string>
     <string name="today">今天</string>
     <string name="publish_time">发布时间：</string>
