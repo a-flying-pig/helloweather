@@ -156,7 +156,7 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
             // 有城市代号时就去查询天气
             weatherInfoLayout.setVisibility(View.INVISIBLE);
             getInfoFailedLayout.setVisibility(View.INVISIBLE);
-            cityNameText.setVisibility(View.INVISIBLE);
+            showProgressDialog();
             // 将存储的城市Id改为从ChooseActivity传过来的Id，
             // 避免在服务自动更新的时候将前面的城市Id用于更新
             SharedPreferences.Editor editor =  PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -215,7 +215,12 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
                         public void run() {
                             String longitudeLatitude = getLocation();
                             if (!TextUtils.isEmpty(longitudeLatitude)) {
-                                QueryUtility.queryWeatherInfo(longitudeLatitude, mHandler);
+                                if (longitudeLatitude != "unuseful") {
+                                    QueryUtility.queryWeatherInfo(longitudeLatitude, mHandler);
+                                }
+                            } else {
+                                closeProgressDialog();
+                                Toast.makeText(WeatherActivity.this, getString(R.string.get_location_failed), Toast.LENGTH_SHORT).show();
                             }
                         }
                     }, 500);
@@ -310,30 +315,38 @@ public class WeatherActivity extends AppCompatActivity implements View.OnClickLi
         String locationInfo = null;
         String provider = null;
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        // 获取可用位置信息
+        // 获取可用位置信息,这里优先使用网络定位，一般开网络的多，而且查询时一般是会打开数据连接或者wifi的，开GPS比较少
         List<String> providerList = locationManager.getProviders(true);
-        if (providerList.contains(LocationManager.GPS_PROVIDER)) {
-            provider = LocationManager.GPS_PROVIDER;
-        } else if (providerList.contains(LocationManager.NETWORK_PROVIDER)) {
+        if (providerList.contains(LocationManager.NETWORK_PROVIDER)) {
             provider = LocationManager.NETWORK_PROVIDER;
+        } else if (providerList.contains(LocationManager.GPS_PROVIDER)) {
+            provider = LocationManager.GPS_PROVIDER;
         } else {
             // 当没有可用的位置提供器时，弹出Toast提示用户
-            Toast.makeText(this, this.getText(R.string.no_location_provider), Toast.LENGTH_SHORT).show();
+            closeProgressDialog();
+            locationInfo = "unuseful";
+            Toast.makeText(this, getString(R.string.no_location_provider), Toast.LENGTH_SHORT).show();
         }
+        LogUtil.d("locationInfo", "provider =  " + provider);
         if (Build.VERSION.SDK_INT >= 23) {
             if (WeatherActivity.this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                Location location = locationManager.getLastKnownLocation(provider);
-                if (location != null) {
-                    locationInfo = location.getLatitude() + ":" + location.getLongitude();
-
+                if (provider != null) {
+                    Location location = locationManager.getLastKnownLocation(provider);
+                    if (location != null) {
+                        locationInfo = location.getLatitude() + ":" + location.getLongitude();
+                    }
                 }
             }
         } else {
-            Location location = locationManager.getLastKnownLocation(provider);
-            if (location != null) {
-                locationInfo = location.getLatitude() + ":" + location.getLongitude();
+            if (provider != null) {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if (location != null) {
+                    locationInfo = location.getLatitude() + ":" + location.getLongitude();
+                }
+
             }
         }
+        LogUtil.d("locationInfo", "locationInfo " + locationInfo);
         return locationInfo;
     }
 

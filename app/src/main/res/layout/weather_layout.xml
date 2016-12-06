@@ -81,7 +81,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_centerHorizontal="true"
                     android:layout_marginBottom="20dp"
-                    android:layout_marginStart="150dp"
+                    android:layout_marginStart="145dp"
                     android:text="@string/get_info_failed_try"
                     android:textColor="#27A5F9"
                     android:textSize="16sp" />
